@@ -1,0 +1,23 @@
+[toolchain]
+anchor_version = "0.32.1"
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.devnet]
+allowance = "83eetVkGiCvyFw452uNiBhf6UtKnj4XKDjAUrQArFaQL"
+
+[programs.localnet]
+allowance = "83eetVkGiCvyFw452uNiBhf6UtKnj4XKDjAUrQArFaQL"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npx tsx --test tests/allowance.test.ts"

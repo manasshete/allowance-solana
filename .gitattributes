@@ -1,0 +1,4 @@
+# Keep LF everywhere: the shell scripts run inside Linux containers.
+* text=auto eol=lf
+*.png binary
+*.so binary

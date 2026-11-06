@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy to config/merchants.json. Keys are payTo wallets. 'asset' is the merchant's Agent Registry (8004) asset; needed for merchants the session doesn't list. 'contact' lets the agent say 'pay Alice'.",
+  "MERCHANT_A_WALLET": { "label": "Merchant A", "contact": "summary-api" },
+  "MERCHANT_B_WALLET": { "label": "Merchant B", "asset": "MERCHANT_B_REGISTRY_ASSET" },
+  "MERCHANT_C_WALLET": { "label": "Merchant C", "asset": "MERCHANT_C_REGISTRY_ASSET" },
+  "ALICE_WALLET": { "label": "Alice", "contact": "alice" }
+}

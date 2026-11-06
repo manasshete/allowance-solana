@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Allowance dashboard</title>
+  <meta name="description" content="Set an AI agent's USDC allowance on Solana devnet, watch every payment the program allows or refuses, and freeze it all in one tap.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@400;500;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="wordmark" href="./" aria-label="Allowance, home">Allowance</a>
+      <span class="pill pill--live">Devnet</span>
+      <p class="topbar__program"><span class="muted">Program ID</span> <span class="mono-id">set after anchor deploy</span></p>
+      <button type="button" class="btn btn--ghost btn--sm topbar__wallet">Connect Phantom</button>
+    </div>
+  </header>
+
+  <main class="container dash">
+    <h1 class="visually-hidden">Allowance owner dashboard</h1>
+
+    <section class="col col--left" aria-labelledby="vault-h">
+      <!-- Vault -->
+      <div class="plate">
+        <div class="plate__head">
+          <h2 id="vault-h">Vault</h2>
+          <span class="pill pill--on-ink">Open</span>
+        </div>
+        <p class="plate__figure"><span class="figure">19.97</span> <span class="unit">USDC</span></p>
+        <div class="bar bar--ink" style="--fill: 0.9985" role="img" aria-label="19.97 of 20.00 USDC left in the vault"><span></span></div>
+        <p class="plate__note">of 20.00 deposited</p>
+      </div>
+
+      <form class="well well--tight amount" action="#" onsubmit="return false">
+        <label for="amount">Amount (USDC)</label>
+        <div class="amount__row">
+          <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="5.00">
+          <button type="submit" class="btn btn--ghost">Deposit</button>
+          <button type="submit" class="btn btn--ghost">Withdraw</button>
+        </div>
+      </form>
+
+      <details class="freeze">
+        <summary class="btn btn--danger btn--block">Freeze all sessions</summary>
+        <div class="freeze__confirm">
+          <p>Every refill and payment fails on-chain until you unfreeze. Signs <code>freeze_all</code> in Phantom.</p>
+          <div class="freeze__actions">
+            <button type="button" class="btn btn--danger-fill">Freeze now</button>
+            <button type="button" class="btn btn--ghost" onclick="this.closest('details').open=false">Cancel</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Session -->
+      <article class="well session" aria-labelledby="session-h">
+        <div class="session__head">
+          <h2 id="session-h">Agent session</h2>
+          <span class="pill pill--live">Active</span>
+        </div>
+        <p class="muted session__key">Agent key <span class="mono-id">from the MCP server</span></p>
+
+        <div class="meter">
+          <div class="meter__label"><span>Spent today</span><span class="num">0.03 / 2.00</span></div>
+          <div class="bar" style="--fill: 0.015"><span></span></div>
+        </div>
+        <div class="meter">
+          <div class="meter__label"><span>Merchant A</span><span class="num">0.03 / 1.00</span></div>
+          <div class="bar" style="--fill: 0.03"><span></span></div>
+        </div>
+        <div class="meter">
+          <div class="meter__label"><span>Other merchants</span><span class="num">0.00 / 0.50</span></div>
+          <div class="bar" style="--fill: 0"><span></span></div>
+        </div>
+        <div class="meter">
+          <div class="meter__label"><span>Pocket</span><span class="num">0.00 / 0.05</span></div>
+          <div class="bar" style="--fill: 0"><span></span></div>
+        </div>
+
+        <dl class="facts">
+          <div><dt>Per request</dt><dd class="num">0.05 USDC</dd></div>
+          <div><dt>Min reputation</dt><dd class="num">70</dd></div>
+          <div><dt>Expires</dt><dd class="num">in 23 h 51 m</dd></div>
+        </dl>
+
+        <button type="button" class="btn btn--ghost btn--block">Revoke session</button>
+      </article>
+    </section>
+
+    <section class="col col--right board" aria-labelledby="feed-h" data-feed>
+      <div class="board__head">
+        <h2 id="feed-h">What the chain said</h2>
+        <p class="board__sub">Every refill the program allowed or refused, newest first.</p>
+      </div>
+
+      <!-- full -->
+      <div class="board__state" data-state="full">
+        <table class="feed">
+          <thead>
+            <tr><th scope="col">Time</th><th scope="col">Merchant</th><th scope="col">Route</th><th scope="col" class="r">USDC</th><th scope="col">Result</th></tr>
+          </thead>
+          <tbody>
+            <tr class="is-refused">
+              <td class="num" data-label="Time">14:06:52</td>
+              <td data-label="Merchant">Merchant C</td>
+              <td data-label="Route"><code>/sketchy-data</code><span class="reason">Pull market data for the report</span></td>
+              <td class="num r figure" data-label="USDC">0.01</td>
+              <td data-label="Result"><strong>Refused</strong><span class="rule">Reputation below 70</span><span class="rule">checked by MCP server</span></td>
+            </tr>
+            <tr class="is-refused">
+              <td class="num" data-label="Time">14:05:30</td>
+              <td data-label="Merchant">Merchant A</td>
+              <td data-label="Route"><code>/premium-report</code><span class="reason">Get the full premium report</span></td>
+              <td class="num r figure" data-label="USDC">0.50</td>
+              <td data-label="Result"><strong>Refused</strong><span class="rule">OverRequestCap</span><span class="rule">cap is 0.05</span></td>
+            </tr>
+            <tr>
+              <td class="num" data-label="Time">14:03:18</td>
+              <td data-label="Merchant">Merchant A</td>
+              <td data-label="Route"><code>/summary</code><span class="reason">Summarize solana.com for the user</span></td>
+              <td class="num r figure" data-label="USDC">0.01</td>
+              <td data-label="Result"><strong>Paid</strong><a class="tx" href="#">View tx</a><span class="rule">reason hash matches</span></td>
+            </tr>
+            <tr>
+              <td class="num" data-label="Time">14:02:47</td>
+              <td data-label="Merchant">Merchant A</td>
+              <td data-label="Route"><code>/summary</code><span class="reason">Summarize the x402 docs</span></td>
+              <td class="num r figure" data-label="USDC">0.01</td>
+              <td data-label="Result"><strong>Paid</strong><a class="tx" href="#">View tx</a><span class="rule">reason hash matches</span></td>
+            </tr>
+            <tr>
+              <td class="num" data-label="Time">14:01:05</td>
+              <td data-label="Merchant">Merchant A</td>
+              <td data-label="Route"><code>/summary</code><span class="reason">Summarize the Agent Registry page</span></td>
+              <td class="num r figure" data-label="USDC">0.01</td>
+              <td data-label="Result"><strong>Paid</strong><a class="tx" href="#">View tx</a><span class="rule">reason hash matches</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="board__foot">Sample rows from the demo script. Live rows come from <code>PocketRefilled</code> events.</p>
+      </div>
+
+      <!-- loading -->
+      <div class="board__state" data-state="loading" hidden aria-busy="true">
+        <p class="visually-hidden">Loading payments</p>
+        <div class="skeleton"><span></span><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- empty -->
+      <div class="board__state board__msg" data-state="empty" hidden>
+        <h3>No payments yet</h3>
+        <p>Start the MCP server and ask Claude to call a paid API. Each refill lands here in about a second.</p>
+      </div>
+
+      <!-- error -->
+      <div class="board__state board__msg" data-state="error" hidden role="alert">
+        <h3>Lost the devnet RPC</h3>
+        <p>The feed stopped listening for events. Payments are still enforced on-chain.</p>
+        <button type="button" class="btn btn--on-ink" onclick="location.search='?feed=full'">Reconnect</button>
+      </div>
+    </section>
+
+    <section class="well create" aria-labelledby="create-h">
+      <h2 id="create-h">New session</h2>
+      <form class="create__grid" action="#" onsubmit="return false">
+        <div class="field field--wide">
+          <label for="agent">Agent public key</label>
+          <input id="agent" name="agent" type="text" autocomplete="off" spellcheck="false" placeholder="Printed by the MCP server on start" required>
+          <small class="help">The agent can only spend through this program.</small>
+        </div>
+        <div class="field">
+          <label for="per">Per request (USDC)</label>
+          <input id="per" name="per_request_cap" type="text" inputmode="decimal" value="0.05">
+          <small class="help"></small>
+        </div>
+        <div class="field">
+          <label for="daily">Daily cap (USDC)</label>
+          <input id="daily" name="daily_cap" type="text" inputmode="decimal" value="2.00">
+          <small class="help"></small>
+        </div>
+        <div class="field">
+          <label for="other">Other merchants, daily</label>
+          <input id="other" name="other_daily_cap" type="text" inputmode="decimal" value="0.50">
+          <small class="help">For payees not listed below.</small>
+        </div>
+        <div class="field">
+          <label for="rep">Min reputation</label>
+          <input id="rep" name="min_reputation" type="number" inputmode="numeric" min="0" max="100" value="70">
+          <small class="help">Agent Registry score, 0 to 100.</small>
+        </div>
+        <div class="field">
+          <label for="exp">Expires in (hours)</label>
+          <input id="exp" name="expires_in" type="number" inputmode="numeric" min="1" value="24">
+          <small class="help"></small>
+        </div>
+
+        <fieldset class="merchants field--wide">
+          <legend>Listed merchants <span class="muted">(up to 5)</span></legend>
+          <div class="merchants__row">
+            <div class="field">
+              <label for="m1">Merchant address</label>
+              <input id="m1" name="merchant_1" type="text" autocomplete="off" spellcheck="false" placeholder="Merchant A payTo address">
+            </div>
+            <div class="field">
+              <label for="m1cap">Daily cap (USDC)</label>
+              <input id="m1cap" name="merchant_1_cap" type="text" inputmode="decimal" value="1.00">
+            </div>
+          </div>
+          <button type="button" class="btn btn--text">Add merchant</button>
+        </fieldset>
+
+        <div class="create__submit field--wide">
+          <button type="submit" class="btn btn--primary">Create session</button>
+          <p class="muted">Signs <code>create_session</code> and sends the agent 0.05 devnet SOL for fees.</p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="container foot">
+    <p>Allowance on Solana devnet. The program enforces every rule above; this page only reads and signs.</p>
+  </footer>
+
+  <script>
+    // Feed state lives in the URL: ?feed=loading | empty | error | full
+    (function () {
+      var s = new URLSearchParams(location.search).get('feed');
+      if (!s) return;
+      document.querySelectorAll('[data-feed] [data-state]').forEach(function (el) {
+        el.hidden = el.dataset.state !== s;
+      });
+    })();
+  </script>
+</body>
+</html>

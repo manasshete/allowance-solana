@@ -1,0 +1,32 @@
+{
+  "name": "allowance",
+  "private": true,
+  "description": "An on-chain spending firewall for AI agents paying over x402 on Solana",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:program": "anchor build && node scripts/sync-idl.mjs",
+    "test:program": "tsx --test tests/allowance.test.ts",
+    "test": "npm run test:program"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@solana/spl-token": "0.4.14",
+    "@solana/web3.js": "1.99.0",
+    "@types/node": "22.15.3",
+    "@solana/kit": "8.6.0",
+    "litesvm": "1.6.2",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3"
+  },
+  "overrides": {
+    "rpc-websockets": {
+      "uuid": "11.1.0"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

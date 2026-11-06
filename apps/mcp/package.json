@@ -1,0 +1,25 @@
+{
+  "name": "@allowance/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server that lets an AI agent pay x402 APIs and contacts through the Allowance program",
+  "bin": {
+    "allowance-mcp": "src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@allowance/client": "*",
+    "@coral-xyz/anchor": "0.32.1",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@solana/web3.js": "1.99.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "tsx": "4.20.3",
+    "typescript": "5.8.3"
+  }
+}
