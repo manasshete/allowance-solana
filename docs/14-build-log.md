@@ -161,7 +161,30 @@ Result: **all steps PASS.**
 
 **Not yet checked:** signing with Phantom in the browser (create vault, deposit, session, approve, freeze). It needs the user's wallet with devnet SOL and the demo token.
 
-### 10. Not done yet
+### 10. Restyle in solana.com's visual language
+
+The user asked to make the UI "similar to solana.com", with the Hallmark and design-taste-frontend skills.
+
+**Where the brand values came from:**
+- solana.com answered 429 to a fetch, so the values come from the site's public source: `solana-foundation/solana-com` (`apps/web/tailwind.config.js`, `globals.css`, `fonts.css`).
+- Recorded in `.hallmark/brand-spec.md`:
+  - black ground, white primary CTA with black text, `#ABABBA` secondary text, lavender-tinted hairlines,
+  - highlight colours, and the brand ramp `#9945FF` → `#14F195`,
+  - fonts: Diatype and DSemi, licensed, so not used.
+
+**What changed (depth: restyle; routes, layout, content and wiring kept):**
+- **Font:** Space Grotesk (solana.com's own secondary face, OFL) for everything. System mono only for addresses, signatures and logs.
+- **Controls:** white pill buttons and wallet button, pill tabs, 16px-radius panels on hairlines.
+- **Ramp:** only as a 3px stripe on the live surfaces (vault plate, boards) and as the meter fill.
+- **States:** paid in green `#55E9AB`, refusals as gold `#FFC526` rows with the rule, freeze in orange `#F48252`.
+- **One composition change, on the landing page:** its empty right half now shows a static board of the actual devnet demo run, linking to the read-only demo vault.
+
+**Checks:**
+- Hallmark `sloplint`: 0 FAIL. Two were fixed: the input focus ring now appears instantly (`outline`), and the toast container no longer uses `100vw`. The pure `#000`/`#fff` (brand values), the pill tabs and bars, and the ramp are waived in the stamp.
+- `next build` passes.
+- Screenshots: desktop and phone landing, Overview and session pages in read-only view. The before shots are in `.hallmark/before/`.
+
+### 11. Not done yet
 
 - **The vault owner.** `.env` has `OWNER=EibuVg8LKVrgXqZBQeDeCLXNXvViUkyaKKcQAsbzFJLG` (the user's Phantom wallet). The CLI demo uses its own owner keypair (`keys/owner.json`); the user's vault is created from the dashboard.
 - **Registry entries on devnet** for merchants B and C (`8004-solana`), so the demo shows a reputation pass and `LowReputation` rather than `ReputationAccountMissing`.

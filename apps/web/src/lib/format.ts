@@ -8,7 +8,7 @@ export const usdc = (v: bigint | { toString(): string } | null | undefined) =>
 export function when(unix: number | null) {
   if (!unix) return "—";
   const d = new Date(unix * 1000);
-  return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
 }
 
 export function timeLeft(expiresAt: number) {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Chivo_Mono } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -7,7 +7,7 @@ import "./globals.css";
 
 import { Providers } from "@/components/Providers";
 
-const chivo = Chivo_Mono({ subsets: ["latin"], weight: ["400", "500", "800"], variable: "--font-chivo" });
+const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-grotesk" });
 
 export const metadata: Metadata = {
   title: { default: "Allowance", template: "%s | Allowance" },
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={chivo.variable}>
+    <html lang="en" className={grotesk.variable}>
       <body>
         <Providers>{children}</Providers>
       </body>
