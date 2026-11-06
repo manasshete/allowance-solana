@@ -681,6 +681,11 @@ export type Allowance = {
               },
               {
                 "kind": "account",
+                "path": "session.created_at",
+                "account": "session"
+              },
+              {
+                "kind": "account",
                 "path": "session.pending_nonce",
                 "account": "session"
               }

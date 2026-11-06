@@ -8,7 +8,7 @@ Rebuilt from the Stellar project [Pay3](https://github.com/manasshete/PAYThreeWa
 
 | Part | State |
 | --- | --- |
-| Anchor program `programs/allowance` | Built; 27 LiteSVM tests pass |
+| Anchor program `programs/allowance` | Built; 29 LiteSVM tests pass; upgraded on devnet (approval addresses per session instance) |
 | `packages/client` (PDAs, instruction builders, errors, history, x402 agent) | Done, type-checked |
 | `apps/facilitator` (x402 facilitator) | Done; verified and settled real payments on a local validator |
 | `apps/paid-api` (demo x402 API) | Done; returns correct 402 terms and serves paid content |
@@ -85,13 +85,26 @@ The whole demo on devnet in one command:
 docker run --rm -v "${p}:/work" -v allowance-node-modules:/work/node_modules -w /work solanafoundation/anchor:v0.32.1 bash scripts/docker/e2e-devnet.sh
 ```
 
-This funds the demo wallets from the deployer, then seeds (once), and runs the facilitator, paid API and demo. Merchant A has a 1.00 daily cap, so more than one full run per day ends in a correct `OverMerchantCap` refusal at step 3. The public devnet RPC rate-limits history reads, so set `RPC_URL` to a Helius devnet URL for regular use.
+This funds the demo wallets from the deployer, then seeds (once), and runs the facilitator, paid API and demo.
 
-To redeploy after a program change, run this in `.\scripts\anchor.ps1 shell`:
+**The demo steps:**
+1. A paid call to the listed merchant.
+2. `OverRequestCap`.
+3. An approval, then the paid retry.
+4. **Reputation, against real Agent Registry data:**
+   - Merchant B is unlisted, has reputation 95, and is paid.
+   - Merchant C is refused with `LowReputation` (20 is below 70).
+5. `Frozen`.
 
-```bash
-solana program deploy target/deploy/allowance.so --program-id keys/allowance-program.json --keypair keys/deployer.json --url devnet
-```
+**Options and notes:**
+- **Fresh daily caps:** add `-e FRESH_SESSION=1` to revoke and close the session and open a new one. Merchant A's cap is 1.00 a day, so a second full run on the same day otherwise ends in a correct `OverMerchantCap` at step 3.
+- **Rate limits:** the public devnet RPC rate-limits history reads. Set `RPC_URL` to a Helius devnet URL for regular use.
+
+**Re-registering the merchants:** `npx tsx scripts/register-merchants.ts` registers merchants B and C in the 8004 Agent Registry, if they aren't already, and writes their assets to `config/merchants.json`.
+
+**Redeploying after a program change:** `scripts/docker/upgrade.sh`
+- It extends the program account if the new build is larger.
+- It gathers spare SOL from the demo wallets for the temporary buffer (about 2.02 SOL, refunded), upgrades, and returns the SOL.
 
 Manual steps:
 
@@ -102,10 +115,32 @@ Manual steps:
    - `npm run start -w @allowance/facilitator`
    - `npm run start -w @allowance/paid-api`
    - `npx tsx scripts/demo.ts`
-5. Claude Desktop: add to `claude_desktop_config.json`:
-   ```json
-   "allowance": { "command": "npx", "args": ["tsx", "apps/mcp/src/index.ts"], "cwd": "<repo path>" }
-   ```
+5. **Connect Claude** (the workflow in `docs/allowance.md` Part 3):
+   1. **Start the MCP server once** (`npx tsx apps/mcp/src/index.ts` with `VAULT_OWNER` set).
+      - If `AGENT_KEYPAIR_PATH` (default `keys/agent.json`) doesn't exist, it creates the agent key there.
+      - It prints the public key to stderr.
+   2. **Create a session for that key** at `/app/sessions/new`, signing with Phantom.
+   3. **Add the server to Claude Desktop's** `claude_desktop_config.json`, or Cursor's `.cursor/mcp.json`:
+      ```json
+      {
+        "mcpServers": {
+          "allowance": {
+            "command": "npx",
+            "args": ["tsx", "<repo>/apps/mcp/src/index.ts"],
+            "env": {
+              "VAULT_OWNER": "<your Phantom address>",
+              "AGENT_KEYPAIR_PATH": "<repo>/keys/agent.json",
+              "RPC_URL": "https://api.devnet.solana.com",
+              "PROGRAM_ID": "83eetVkGiCvyFw452uNiBhf6UtKnj4XKDjAUrQArFaQL",
+              "USDC_MINT": "7XhdZfnuTzRjC8eUQF2CE4bEcCyDgjgxoNLjHC1YN5yL"
+            }
+          }
+        }
+      }
+      ```
+   4. **Check the connection** by asking Claude "What's my allowance?".
+      - Until a session exists, every tool answers "No session for agent {key}. Create one in the dashboard."
+      - Refusals come back as sentences with the numbers, for example "Refused by the chain: 0.50 USDC is over the 0.05 per-request cap. (OverRequestCap)".
 
 **MCP tools:**
 - `get_allowance`

@@ -7,11 +7,13 @@ import { PageHead } from "@/components/Bits";
 import { EmptyState, ErrorState, Skeleton } from "@/components/States";
 import { sessionStatus, shortKey, timeLeft, usdc } from "@/lib/format";
 import { useReadOnly, useSessions } from "@/lib/hooks";
+import { useAgentNames } from "@/lib/names";
 
 export default function Sessions() {
   const sessions = useSessions();
   const router = useRouter();
   const readOnly = useReadOnly();
+  const names = useAgentNames();
   const rows = [...(sessions.data ?? [])].sort((a, b) => b.account.createdAt.toNumber() - a.account.createdAt.toNumber());
   return (
     <>
@@ -59,7 +61,7 @@ export default function Sessions() {
               return (
                 <tr key={href} className="is-link" onClick={() => router.push(href)}>
                   <td data-label="Agent">
-                    <Link href={href}>{shortKey(s.agent, 6)}</Link>
+                    <Link href={href}>{names[s.agent.toBase58()] ?? shortKey(s.agent, 6)}</Link>
                   </td>
                   <td data-label="Status">
                     <span className={`pill ${st === "active" ? "pill--live" : st === "revoked" ? "pill--error" : "pill--muted"}`}>{st}</span>

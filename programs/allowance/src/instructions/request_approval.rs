@@ -25,7 +25,15 @@ pub struct RequestApproval<'info> {
         init,
         payer = agent,
         space = 8 + Pending::INIT_SPACE,
-        seeds = [PENDING_SEED, session.key().as_ref(), &session.pending_nonce.to_le_bytes()],
+        // created_at gives each session instance its own namespace: a session closed and
+        // recreated for the same agent restarts pending_nonce at 0 without colliding with
+        // the Pending accounts of the earlier instance.
+        seeds = [
+            PENDING_SEED,
+            session.key().as_ref(),
+            &session.created_at.to_le_bytes(),
+            &session.pending_nonce.to_le_bytes(),
+        ],
         bump
     )]
     pub pending: Account<'info, Pending>,

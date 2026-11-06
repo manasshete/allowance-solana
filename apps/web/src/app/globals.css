@@ -236,7 +236,7 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
 input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--color-danger); }
 .check { display: flex; gap: var(--space-xs); align-items: center; font-size: var(--text-sm); color: var(--color-ink-2); }
 .check input { width: 18px; height: 18px; accent-color: var(--color-purple); }
-.merchant-row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: var(--space-sm); align-items: end; }
+.merchant-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 3fr) minmax(0, 1fr) auto; gap: var(--space-sm); align-items: end; }
 .amount-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--space-xs); }
 .submit-row { display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap; border-top: var(--rule-hair) solid var(--color-line); padding-top: var(--space-lg); }
 .submit-row p { font-size: var(--text-sm); }
@@ -298,4 +298,21 @@ input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--color-danger); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+.refusal__note { font-size: var(--text-xs); color: var(--color-scrim); }
+
+/* new-session form: fieldsets beside the plain-words rules */
+.form-layout { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--gap-columns); align-items: start; }
+.fieldset { margin: 0; min-width: 0; border: 0; }
+.fieldset > legend { float: left; width: 100%; padding: 0; margin-bottom: var(--space-sm); font-size: var(--text-lg); font-weight: 700; letter-spacing: var(--tracking-display); }
+.fieldset > legend + * { clear: both; }
+.choices { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+.rules { position: sticky; top: calc(72px + var(--space-lg)); }
+.rules h2 { font-size: var(--text-lg); }
+.rules ul { margin: 0; padding-left: var(--space-md); display: grid; gap: var(--space-sm); color: var(--color-ink-2); }
+.rules li::marker { color: var(--color-lavender); }
+@media (max-width: 60rem) {
+  .form-layout { grid-template-columns: minmax(0, 1fr); }
+  .rules { position: static; order: -1; }
 }

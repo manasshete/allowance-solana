@@ -9,16 +9,19 @@
  *   5. Kill switch          freeze_all, then /summary                  -> Frozen; unfreeze after
  *   6. History              read back from the chain
  */
-import { Connection, sendAndConfirmTransaction, Transaction } from "@solana/web3.js";
+import { existsSync, readFileSync } from "node:fs";
+
+import { Connection, PublicKey, sendAndConfirmTransaction, Transaction } from "@solana/web3.js";
 
 import {
   fetchHistory,
-  fetchPendings,
+  fetchPending,
   fetchSession,
   formatUsdc,
   getProgram,
   parseUsdc,
   pendingStatus,
+  registryAccounts,
   requestApprovalIx,
   resolvePendingIx,
   sessionPda,
@@ -27,7 +30,7 @@ import {
   vaultPda,
 } from "../packages/client/src/index";
 import { payX402, type AgentContext, type PayResult } from "../packages/client/src/agent";
-import { loadDotEnv, pubkeyEnv, readKeypair, required, usdcMint } from "../packages/client/src/env";
+import { fromRoot, loadDotEnv, pubkeyEnv, readKeypair, required, usdcMint } from "../packages/client/src/env";
 
 loadDotEnv();
 loadDotEnv(".env.seed");
@@ -37,7 +40,22 @@ const conn = new Connection(required("RPC_URL"), "confirmed");
 const program = getProgram(conn);
 const owner = readKeypair(process.env.OWNER_KEYPAIR ?? "keys/owner.json");
 const agent = readKeypair(required("AGENT_KEYPAIR"));
-const ctx: AgentContext = { connection: conn, program, agent, owner: owner.publicKey, mint: usdcMint() };
+// payTo wallet -> Agent Registry asset, from config/merchants.json (written by register-merchants.ts)
+const merchantsFile = fromRoot(process.env.MERCHANTS_FILE ?? "config/merchants.json");
+const merchants: Record<string, { asset?: string }> = existsSync(merchantsFile)
+  ? JSON.parse(readFileSync(merchantsFile, "utf8"))
+  : {};
+const ctx: AgentContext = {
+  connection: conn,
+  program,
+  agent,
+  owner: owner.publicKey,
+  mint: usdcMint(),
+  reputationFor: async (m) => {
+    const asset = merchants[m.toBase58()]?.asset;
+    return asset ? registryAccounts(new PublicKey(asset)) : null;
+  },
+};
 const vault = vaultPda(owner.publicKey);
 const session = sessionPda(vault, agent.publicKey);
 
@@ -85,6 +103,7 @@ async function main() {
     amount: toBN(parseUsdc("0.5")),
     reason: "Full premium report for the quarterly review",
     nonce: s!.pendingNonce,
+    createdAt: s!.createdAt,
   });
   await sendAndConfirmTransaction(conn, new Transaction().add(ix), [agent]);
   await ownerSends(new Transaction().add(await resolvePendingIx(program, owner.publicKey, session, pending, true)));
@@ -93,11 +112,17 @@ async function main() {
     await payX402(ctx, `${API}/premium-report`, "Full premium report for the quarterly review"),
     "paid",
   );
-  const used = (await fetchPendings(program, vault)).find((p) => p.address.equals(pending));
-  console.log(`      voucher status: ${used ? pendingStatus(used.account) : "missing"}`);
+  const used = await fetchPending(program, pending); // one account read; program-wide lists can lag
+  console.log(`      voucher status: ${used ? pendingStatus(used) : "missing"}`);
 
-  const r4 = await payX402(ctx, `${API}/sketchy-data`, "Pull data from an unknown provider");
-  show("4 unlisted merchant without trusted reputation", r4, "refused");
+  show(
+    "4a unlisted merchant with good reputation",
+    await payX402(ctx, `${API}/market-data`, "Market data from a well-reviewed provider"),
+    "paid",
+  );
+  const r4 = await payX402(ctx, `${API}/sketchy-data`, "Pull data from a poorly reviewed provider");
+  show("4b unlisted merchant below the reputation minimum", r4, "refused", "LowReputation");
+  if (r4.status === "refused") console.log(`      ${r4.message}`);
 
   // 5. kill switch
   await ownerSends(new Transaction().add(await setFrozenIx(program, owner.publicKey, true)));
@@ -105,13 +130,18 @@ async function main() {
   await ownerSends(new Transaction().add(await setFrozenIx(program, owner.publicKey, false)));
 
   // 6. history from the chain
-  const { rows } = await fetchHistory(conn, program, session, { limit: 20 });
-  console.log("\nhistory (newest first, read from the chain):");
-  for (const r of rows) {
-    console.log(
-      `  ${r.ok ? "ok     " : "REFUSED"} ${r.kind.padEnd(16)} ${r.amount !== null ? formatUsdc(r.amount).padStart(5) : "     "} ` +
-        `${(r.error ?? "").padEnd(16)} fee:${r.feePayer.slice(0, 4)} ${r.reason ?? ""}`,
-    );
+  // A display step: a rate-limited public RPC must not fail a demo whose payments all passed.
+  try {
+    const { rows } = await fetchHistory(conn, program, session, { limit: 20, concurrency: 1 });
+    console.log("\nhistory (newest first, read from the chain):");
+    for (const r of rows) {
+      console.log(
+        `  ${r.ok ? "ok     " : "REFUSED"} ${r.kind.padEnd(16)} ${r.amount !== null ? formatUsdc(r.amount).padStart(5) : "     "} ` +
+          `${(r.error ?? "").padEnd(24)} fee:${r.feePayer.slice(0, 4)} ${r.reason ?? ""}`,
+      );
+    }
+  } catch (e) {
+    console.log(`\nhistory skipped: ${(e as Error).message.slice(0, 120)} (use a Helius RPC_URL to avoid public rate limits)`);
   }
 
   const after = await fetchSession(program, session);

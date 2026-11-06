@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "@tanstack/react-query";
 
-import { ERROR_SENTENCES, parseAllowanceTx } from "@allowance/client";
+import { describeRefusal, parseAllowanceTx } from "@allowance/client";
 
 import { kindLabel } from "@/components/ActivityTable";
 import { Addr, Copy, PageHead, TxLink } from "@/components/Bits";
@@ -48,7 +48,17 @@ export default function TxDetail() {
           {!r.ok && (
             <div className="refusal">
               <code>{r.error ?? "Failed"}</code>
-              <span>{r.error ? `Refused by the chain: ${ERROR_SENTENCES[r.error]}.` : "The transaction failed."}</span>
+              <span>
+                {r.error
+                  ? `Refused by the chain: ${describeRefusal(r.error, {
+                      amount: r.amount,
+                      merchant: r.merchant,
+                      merchantLabel: r.merchant ? (labels.get(r.merchant) ?? null) : null,
+                      session: sessions.data?.find((x) => x.address.toBase58() === r.session)?.account ?? null,
+                    })}`
+                  : "The transaction failed."}
+              </span>
+              <span className="refusal__note">Caps shown are the session&apos;s current values.</span>
             </div>
           )}
           <div className="well">

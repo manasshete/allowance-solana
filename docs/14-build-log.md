@@ -184,8 +184,59 @@ The user asked to make the UI "similar to solana.com", with the Hallmark and des
 - `next build` passes.
 - Screenshots: desktop and phone landing, Overview and session pages in read-only view. The before shots are in `.hallmark/before/`.
 
-### 11. Not done yet
+### 11. What `docs/allowance.md` asked for, built on the on-chain design
+
+`docs/allowance.md` (the user's rebuild prompt) describes the earlier **pocket** design: `refill_pocket`, a reason hash, and a `/log` server. The user later asked that every payment be on-chain (plan 13), and the program implements that. So the pocket was not rebuilt, and in the current design:
+- the reason is stored on-chain in full,
+- there is no `/log` endpoint,
+- there is no pocket balance.
+
+What the document asks for that was missing has been built:
+
+- **MCP workflow (Part 3):**
+  - The server creates the agent keypair if its file is missing and prints the public key to stderr.
+  - It accepts the document's env names (`AGENT_KEYPAIR_PATH`, `VAULT_OWNER`, `PROGRAM_ID`, checked against the IDL) alongside `AGENT_KEYPAIR` and `OWNER`. `LOG_URL` isn't needed.
+  - Every tool answers "No session for agent {pubkey}. Create one in the dashboard." until a session exists.
+  - Checked by `scripts/docker/mcp-smoke.sh`: MCP initialize, `tools/list` (7 tools), and `get_allowance` with no session.
+- **Refusal sentences with real numbers:** `describeRefusal()` in `packages/client/src/errors.ts`, used by the MCP server, the demo and the dashboard's transaction page. For example: "0.50 USDC is over the 0.05 per-request cap." and "Reputation 20 is below this session's minimum of 70."
+- **New-session form:**
+  - five fieldsets: agent (name kept in this browser), spending caps, listed merchants, everyone else, expiry,
+  - Pay3's presets scaled down for devnet: Conservative, Balanced, DeFi,
+  - expiry choices of 1 hour, 24 hours, 7 days or custom,
+  - a side panel restating the rules in plain sentences as you type.
+
+  The session page now shows the session account address and the agent's name.
+- **Test:** `create_session` stores the current time in `day_start` and zeroes every counter.
+- **Real reputation data:** `scripts/register-merchants.ts` (8004-solana 0.8.5) registered both merchants on devnet with ATOM tracking on:
+
+  | Merchant | Agent asset | Wallet | Score |
+  | --- | --- | --- | --- |
+  | B | `D1imX6JrSCLVEPAJe8DChANdFH3qX2t32TiVTL4aa9Kp` | `74G2Fsuj…` | 95 |
+  | C | `62fUwzBfUA8kPqmoWwJmkGAPdkfuaxut9DKt436BcFuL` | `FXkBZt8k…` | 20 |
+
+  Each wallet is bound to its merchant with the registry's Ed25519-verified `setAgentWallet`. Each merchant got feedback from three reviewer wallets. The scores were read back with the program's own byte-level check. The assets are written to `config/merchants.json`.
+
+**A bug the devnet demo found:** after `close_session` and `create_session` for the same agent, `request_approval` failed with "account already in use".
+- **Cause:** Pending PDAs were `["pending", session, nonce]`. The recreated session restarts `pending_nonce` at 0 and collides with the earlier instance's Pending accounts, which stay on-chain.
+- **Fix:** the seeds are now `["pending", session, created_at, nonce]`, in the program, the client and the tests. A new regression test closes and recreates a session, then requests an approval. 29 of 29 tests pass.
+- **Remaining edge case:** closing and recreating within the same second would still collide, and retrying a second later works.
+
+**Upgrade on devnet (`scripts/docker/upgrade.sh`):**
+- The new `.so` is 192 bytes larger, so the program data was first extended by the loader's 10,240-byte minimum.
+- The upgrade's temporary buffer (about 2.02 SOL, refunded) was covered by gathering spare SOL from our own demo wallets into the deployer and returning it after.
+- Upgraded in slot 519253996. The deployer has about 1.19 SOL.
+
+**Devnet demo after the upgrade** (`FRESH_SESSION=1` revokes and closes the old session, then creates a new one):
+- **Paid:** 0.01 to the listed merchant.
+- **`OverRequestCap`:** refused, recorded on-chain.
+- **Approval:** the agent asked, the owner approved, the retry paid 0.50.
+- **Merchant B:** unlisted, reputation 95, paid 0.01 through the reputation gate.
+- **Merchant C:** refused with `LowReputation` and the sentence "Reputation 20 is below this session's minimum of 70."
+- **Frozen:** refused.
+
+The final history read hit the public RPC's 429 limit, so it is now a non-fatal display step.
+
+### 12. Not done yet
 
 - **The vault owner.** `.env` has `OWNER=EibuVg8LKVrgXqZBQeDeCLXNXvViUkyaKKcQAsbzFJLG` (the user's Phantom wallet). The CLI demo uses its own owner keypair (`keys/owner.json`); the user's vault is created from the dashboard.
-- **Registry entries on devnet** for merchants B and C (`8004-solana`), so the demo shows a reputation pass and `LowReputation` rather than `ReputationAccountMissing`.
 - **Docs 02, 04, 05, 07, 08, 09 and 11** still describe the pocket design (plan § 12).

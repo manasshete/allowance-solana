@@ -1,10 +1,11 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
-import { getProgram, registryAccounts } from "@allowance/client";
+import { getProgram, PROGRAM_ID, registryAccounts } from "@allowance/client";
 import type { AgentContext } from "@allowance/client/agent";
-import { fromRoot, pubkeyEnv, readKeypair, rpcUrl, usdcMint } from "@allowance/client/env";
+import { fromRoot, readKeypair, rpcUrl, usdcMint } from "@allowance/client/env";
 
 export type MerchantInfo = { label: string; contact?: string; asset?: string };
 
@@ -17,11 +18,30 @@ export function loadMerchants(): Record<string, MerchantInfo> {
   );
 }
 
+/**
+ * The agent key is born here, on the owner's machine: if the keypair file doesn't exist,
+ * a new one is generated and saved. Its secret never reaches the model or the dashboard.
+ */
+function loadOrCreateAgent(): { agent: Keypair; path: string; created: boolean } {
+  const path = fromRoot(process.env.AGENT_KEYPAIR_PATH ?? process.env.AGENT_KEYPAIR ?? "keys/agent.json");
+  if (existsSync(path)) return { agent: readKeypair(path), path, created: false };
+  const agent = Keypair.generate();
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, JSON.stringify(Array.from(agent.secretKey)), { mode: 0o600 });
+  return { agent, path, created: true };
+}
+
 export function buildContext() {
+  // PROGRAM_ID is optional: the program ID comes from the IDL; a different value is a config mistake.
+  if (process.env.PROGRAM_ID && process.env.PROGRAM_ID !== PROGRAM_ID.toBase58())
+    throw new Error(`PROGRAM_ID ${process.env.PROGRAM_ID} doesn't match the deployed program ${PROGRAM_ID.toBase58()}`);
+  const ownerStr = process.env.VAULT_OWNER ?? process.env.OWNER;
+  if (!ownerStr) throw new Error("Set VAULT_OWNER (or OWNER) to the vault owner's wallet address");
+
   const connection = new Connection(rpcUrl(), "confirmed");
   const program = getProgram(connection);
-  const agent = readKeypair(process.env.AGENT_KEYPAIR ?? "keys/agent.json");
-  const owner = pubkeyEnv("OWNER");
+  const { agent, path: agentPath, created } = loadOrCreateAgent();
+  const owner = new PublicKey(ownerStr);
   const mint = usdcMint();
   const merchants = loadMerchants();
 
@@ -36,7 +56,7 @@ export function buildContext() {
       return asset ? registryAccounts(new PublicKey(asset)) : null;
     },
   };
-  return { ctx, merchants };
+  return { ctx, merchants, agentPath, created };
 }
 
 /** "alice", "Merchant A" or a base58 address -> wallet. */

@@ -13,6 +13,7 @@ import { Addr, ConfirmInline, Meter, PageHead } from "@/components/Bits";
 import { EmptyState, ErrorState, Skeleton } from "@/components/States";
 import { merchantLabels, sessionStatus, timeLeft, usdc, when } from "@/lib/format";
 import { useActivity, useOwner, useProgram, useReadOnly, useSessions, useVault } from "@/lib/hooks";
+import { useAgentNames } from "@/lib/names";
 import { useSend } from "@/lib/tx";
 
 export default function SessionDetail() {
@@ -24,6 +25,7 @@ export default function SessionDetail() {
   const sessions = useSessions();
   const activity = useActivity(25);
   const readOnly = useReadOnly();
+  const names = useAgentNames();
   const revoke = useSend();
   const close = useSend();
 
@@ -57,7 +59,7 @@ export default function SessionDetail() {
   return (
     <>
       <PageHead
-        title="Agent session"
+        title={names[agent] ?? "Agent session"}
         sub={
           <>
             Agent <Addr value={agent} /> <span className={`pill ${st === "active" ? "pill--live" : "pill--muted"}`}>{st}</span>
@@ -103,6 +105,12 @@ export default function SessionDetail() {
               <div>
                 <dt>Agent SOL (fees)</dt>
                 <dd>{agentSol.data === undefined ? "…" : agentSol.data.toFixed(4)}</dd>
+              </div>
+              <div>
+                <dt>Session account</dt>
+                <dd>
+                  <Addr value={address.toBase58()} />
+                </dd>
               </div>
               <div>
                 <dt>Created</dt>

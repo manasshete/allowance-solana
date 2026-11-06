@@ -3,7 +3,7 @@
 # the deployer funds the demo wallets so no faucet is needed.
 set -u
 cd /work
-export RPC_URL=${RPC_URL:-https://api.devnet.solana.com} KEYS_DIR=keys MERCHANTS_FILE=keys/none.json
+export RPC_URL=${RPC_URL:-https://api.devnet.solana.com} KEYS_DIR=keys MERCHANTS_FILE=config/merchants.json
 D=keys/deployer.json
 # The demo uses its own 6-decimal test token (devnet USDC needs Circle's faucet).
 # The first run creates it and remembers it in keys/demo-mint.env so reruns reuse the same vault.

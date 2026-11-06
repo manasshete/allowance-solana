@@ -222,11 +222,11 @@ export function agentPayIx(program: AllowanceProgram, a: AgentPayArgs): Promise<
 
 export async function requestApprovalIx(
   program: AllowanceProgram,
-  a: { agent: PublicKey; owner: PublicKey; merchant: PublicKey; amount: BN; reason: string; nonce: BN },
+  a: { agent: PublicKey; owner: PublicKey; merchant: PublicKey; amount: BN; reason: string; nonce: BN; createdAt: BN },
 ) {
   const vault = vaultPda(a.owner);
   const session = sessionPda(vault, a.agent);
-  const pending = pendingPda(session, a.nonce);
+  const pending = pendingPda(session, a.createdAt, a.nonce);
   const ix = await program.methods
     .requestApproval(a.amount, clampReason(a.reason))
     .accountsStrict({

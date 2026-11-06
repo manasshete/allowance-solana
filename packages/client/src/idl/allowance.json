@@ -675,6 +675,11 @@
               },
               {
                 "kind": "account",
+                "path": "session.created_at",
+                "account": "Session"
+              },
+              {
+                "kind": "account",
                 "path": "session.pending_nonce",
                 "account": "Session"
               }

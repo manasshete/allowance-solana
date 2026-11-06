@@ -24,12 +24,20 @@ import { resolveRecipient, type MerchantInfo } from "./context";
 
 const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
 const json = (o: unknown) => text(JSON.stringify(o, (_k, v) => (typeof v === "bigint" ? v.toString() : v), 2));
-const DASHBOARD = () => process.env.DASHBOARD_URL ?? "http://localhost:3000";
+const DASHBOARD = () => process.env.DASHBOARD_URL ?? "http://localhost:3100";
 
 export function registerTools(server: McpServer, ctx: AgentContext, merchants: Record<string, MerchantInfo>, z: typeof Zod) {
   const vault = vaultPda(ctx.owner);
   const session = sessionPda(vault, ctx.agent.publicKey);
   const label = (addr: string) => merchants[addr]?.label ?? addr;
+
+  /** Every tool refuses with the same sentence until the owner has created a session for this agent key. */
+  const guard = async () => {
+    const s = await fetchSession(ctx.program, session).catch(() => null);
+    return s
+      ? null
+      : text(`No session for agent ${ctx.agent.publicKey.toBase58()}. Create one in the dashboard (${DASHBOARD()}/app/sessions/new).`);
+  };
 
   server.registerTool(
     "get_allowance",
@@ -40,6 +48,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       inputSchema: {},
     },
     async () => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const [v, s, bal] = await Promise.all([
         fetchVault(ctx.program, vault),
         fetchSession(ctx.program, session),
@@ -79,6 +89,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       },
     },
     async ({ url, reason }) => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const r = await payX402(ctx, url, reason);
       switch (r.status) {
         case "free":
@@ -108,6 +120,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       },
     },
     async ({ to, amount, reason }) => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const dest = resolveRecipient(to, merchants);
       if (!dest) return text(`Unknown recipient "${to}".`);
       const r = await payDirect(ctx, dest, toBN(parseUsdc(amount)), reason);
@@ -130,6 +144,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       },
     },
     async ({ to, amount, reason }) => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const dest = resolveRecipient(to, merchants);
       if (!dest) return text(`Unknown recipient "${to}".`);
       const s = await fetchSession(ctx.program, session);
@@ -141,6 +157,7 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
         amount: toBN(parseUsdc(amount)),
         reason,
         nonce: s.pendingNonce,
+        createdAt: s.createdAt,
       });
       const { Transaction } = await import("@solana/web3.js");
       const tx = new Transaction().add(ix);
@@ -161,6 +178,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       inputSchema: { pending: z.string().describe("The pending address from request_approval") },
     },
     async ({ pending }) => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const p = await fetchPending(ctx.program, new PublicKey(pending));
       if (!p) return text("No such request.");
       return json({
@@ -180,6 +199,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       inputSchema: { address: z.string() },
     },
     async ({ address }) => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const dest = resolveRecipient(address, merchants);
       if (!dest) return text(`Not an address or known contact: ${address}`);
       const s = await fetchSession(ctx.program, session);
@@ -206,6 +227,8 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       inputSchema: { limit: z.number().int().min(1).max(50).default(10) },
     },
     async ({ limit }) => {
+      const blocked = await guard();
+      if (blocked) return blocked;
       const { rows } = await fetchHistory(ctx.connection, ctx.program, session, { limit });
       const pend = await fetchPendings(ctx.program, vault);
       return json({

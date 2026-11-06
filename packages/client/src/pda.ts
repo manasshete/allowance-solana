@@ -10,9 +10,15 @@ export const vaultPda = (owner: PublicKey) =>
 export const sessionPda = (vault: PublicKey, agent: PublicKey) =>
   PublicKey.findProgramAddressSync([SEEDS.session, vault.toBuffer(), agent.toBuffer()], PROGRAM_ID)[0];
 
-export const pendingPda = (session: PublicKey, nonce: number | bigint | BN) =>
+/** Seeds: ["pending", session, session.created_at (i64 LE), nonce (u64 LE)]. */
+export const pendingPda = (session: PublicKey, createdAt: number | bigint | BN, nonce: number | bigint | BN) =>
   PublicKey.findProgramAddressSync(
-    [SEEDS.pending, session.toBuffer(), new BN(nonce.toString()).toArrayLike(Buffer, "le", 8)],
+    [
+      SEEDS.pending,
+      session.toBuffer(),
+      new BN(createdAt.toString()).toTwos(64).toArrayLike(Buffer, "le", 8),
+      new BN(nonce.toString()).toArrayLike(Buffer, "le", 8),
+    ],
     PROGRAM_ID,
   )[0];
 

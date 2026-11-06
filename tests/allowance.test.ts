@@ -163,9 +163,14 @@ const ataOf = (w: PublicKey) => getAssociatedTokenAddressSync(mint, w, true);
 
 const sessionPda = (a: PublicKey) =>
   PublicKey.findProgramAddressSync([Buffer.from("session"), vault.toBuffer(), a.toBuffer()], PROGRAM_ID)[0];
-const pendingPda = (session: PublicKey, nonce: number) =>
+const pendingPda = (session: PublicKey, createdAt: BN, nonce: number) =>
   PublicKey.findProgramAddressSync(
-    [Buffer.from("pending"), session.toBuffer(), new BN(nonce).toArrayLike(Buffer, "le", 8)],
+    [
+      Buffer.from("pending"),
+      session.toBuffer(),
+      createdAt.toArrayLike(Buffer, "le", 8),
+      new BN(nonce).toArrayLike(Buffer, "le", 8),
+    ],
     PROGRAM_ID,
   )[0];
 
@@ -396,6 +401,21 @@ describe("agent_pay", () => {
   });
 });
 
+describe("create_session", () => {
+  it("stores the current time in day_start and zeroes every counter", async () => {
+    const agent7 = Keypair.generate();
+    const at = now();
+    ok([await createSession(agent7.publicKey)], [owner]);
+    const s = await fetchSession(sessionPda(agent7.publicKey));
+    assert.equal(s.dayStart.toString(), at.toString());
+    assert.equal(s.createdAt.toString(), at.toString());
+    assert.equal(s.spentToday.toString(), "0");
+    assert.equal(s.otherSpentToday.toString(), "0");
+    assert.equal(s.totalPaid.toString(), "0");
+    for (const m of s.merchants) assert.equal(m.spentToday.toString(), "0");
+  });
+});
+
 describe("refusing unlisted merchants", () => {
   it("refuses any unlisted merchant when the other-merchant cap is 0", async () => {
     const agent3 = Keypair.generate();
@@ -491,7 +511,7 @@ describe("over-cap approvals", () => {
 
   async function request(amount: number) {
     const s = await fetchSession(session());
-    const addr = pendingPda(session(), Number(s.pendingNonce));
+    const addr = pendingPda(session(), s.createdAt, Number(s.pendingNonce));
     const ix = await program.methods
       .requestApproval(USDC(amount), "Full premium report for the quarterly review")
       .accountsStrict({
@@ -543,5 +563,51 @@ describe("over-cap approvals", () => {
     const p3 = await request(0.2);
     ok([await resolve(p3, false)], [owner]);
     refused([await resolve(p3, true)], [owner], "PendingNotOpen");
+  });
+});
+
+describe("recreating a session for the same agent", () => {
+  it("gets fresh approval addresses instead of colliding with the old session's", async () => {
+    const agent8 = Keypair.generate();
+    fund(agent8);
+    const s8 = sessionPda(agent8.publicKey);
+
+    const ask = async () => {
+      const s = await fetchSession(s8);
+      const addr = pendingPda(s8, s.createdAt, Number(s.pendingNonce));
+      ok(
+        [
+          await program.methods
+            .requestApproval(USDC(0.5), "Over-cap request")
+            .accountsStrict({
+              agent: agent8.publicKey,
+              vault,
+              session: s8,
+              merchant: merchantA,
+              pending: addr,
+              systemProgram: SystemProgram.programId,
+            })
+            .instruction(),
+        ],
+        [agent8],
+      );
+      return addr;
+    };
+
+    ok([await createSession(agent8.publicKey)], [owner]);
+    const first = await ask();
+
+    ok(
+      [
+        await program.methods.revokeSession().accountsStrict({ owner: owner.publicKey, vault, session: s8 }).instruction(),
+        await program.methods.closeSession().accountsStrict({ owner: owner.publicKey, vault, session: s8 }).instruction(),
+      ],
+      [owner],
+    );
+    warp(1n);
+    ok([await createSession(agent8.publicKey)], [owner]);
+    const second = await ask(); // nonce is 0 again; created_at keeps the address new
+    assert.notEqual(second.toBase58(), first.toBase58());
+    assert.ok(svm.getAccount(first), "the old request stays on-chain");
   });
 });

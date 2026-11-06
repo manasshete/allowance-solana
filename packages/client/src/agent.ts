@@ -29,7 +29,8 @@ import {
 } from "@x402/core/http";
 
 import { explorerTx } from "./constants";
-import { ERROR_SENTENCES, extractError, type AllowanceErrorName } from "./errors";
+import { describeRefusal, extractError, type AllowanceErrorName } from "./errors";
+import { scoreFromAtomStats } from "./reputation";
 import { agentPayIx, fetchPendings, fetchSession, pendingStatus, type Allowance } from "./program";
 import { sessionPda, vaultPda } from "./pda";
 import { formatUsdc } from "./units";
@@ -121,7 +122,7 @@ export async function payX402(
       status: "refused",
       rule,
       message: rule
-        ? `Refused by the chain: ${ERROR_SENTENCES[rule]} (${rule}). Price ${human}.`
+        ? `Refused by the chain: ${await explain(ctx, rule, amount, merchant, reputation)} (${rule})`
         : `Simulation failed: ${JSON.stringify(sim.value.err)}`,
       amount: human,
       merchant: merchant.toBase58(),
@@ -199,7 +200,9 @@ export async function payDirect(
     return {
       status: "refused",
       rule,
-      message: rule ? `Refused by the chain: ${ERROR_SENTENCES[rule]} (${rule}).` : "Refused by the chain.",
+      message: rule
+        ? `Refused by the chain: ${await explain(ctx, rule, amount, merchant, reputation)} (${rule})`
+        : "Refused by the chain.",
       amount: human,
       merchant: merchant.toBase58(),
       signature: sig,
@@ -221,6 +224,23 @@ async function buildTx(connection: Connection, feePayer: PublicKey, ixs: Transac
     ],
   }).compileToV0Message();
   return new VersionedTransaction(message);
+}
+
+/** The refusal sentence with the session's real numbers (a refused transaction changes nothing on-chain). */
+async function explain(
+  ctx: AgentContext,
+  rule: AllowanceErrorName,
+  amount: BN,
+  merchant: PublicKey,
+  reputation: { atomStats: PublicKey } | null,
+): Promise<string> {
+  const session = await fetchSession(ctx.program, sessionPda(vaultPda(ctx.owner), ctx.agent.publicKey)).catch(() => null);
+  let score: number | null = null;
+  if (rule === "LowReputation" && reputation) {
+    const acc = await ctx.connection.getAccountInfo(reputation.atomStats).catch(() => null);
+    score = acc ? scoreFromAtomStats(acc.data) : null;
+  }
+  return describeRefusal(rule, { amount: BigInt(amount.toString()), session, merchant: merchant.toBase58(), score });
 }
 
 async function isListed(ctx: AgentContext, merchant: PublicKey) {

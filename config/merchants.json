@@ -1,0 +1,14 @@
+{
+  "7HDesGfngSBpSoGDCqmFCSb73Eksnjb3giMPTY3Ge8EU": {
+    "label": "Merchant A",
+    "contact": "summary-api"
+  },
+  "74G2Fsuj6J2VkAHbHU8dMb1NW3t9v11hh6XEW1t8jLgP": {
+    "label": "Merchant B",
+    "asset": "D1imX6JrSCLVEPAJe8DChANdFH3qX2t32TiVTL4aa9Kp"
+  },
+  "FXkBZt8kfUHJxVJCsx9z9ZrjewcAEderwVuwRbs3dzD6": {
+    "label": "Merchant C",
+    "asset": "62fUwzBfUA8kPqmoWwJmkGAPdkfuaxut9DKt436BcFuL"
+  }
+}

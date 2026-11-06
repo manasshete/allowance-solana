@@ -32,6 +32,7 @@ import {
 } from "@solana/web3.js";
 
 import {
+  closeSessionIx,
   createSessionIx,
   fetchSession,
   fetchVault,
@@ -39,6 +40,7 @@ import {
   initVaultIx,
   moveFundsIx,
   parseUsdc,
+  revokeSessionIx,
   sessionPda,
   toBN,
   vaultPda,
@@ -155,7 +157,17 @@ async function main() {
 
   // session for the agent
   const session = sessionPda(vault, agent.publicKey);
-  if (!(await fetchSession(program, session))) {
+  const existing = await fetchSession(program, session);
+  // FRESH_SESSION=1: revoke and close the old session (rent back to the owner), then create a new one.
+  // A session's limits are fixed at creation, as in Pay3; this is how a demo gets fresh daily caps.
+  if (existing && process.env.FRESH_SESSION === "1") {
+    const ixs = [];
+    if (!existing.revoked) ixs.push(await revokeSessionIx(program, owner.publicKey, session));
+    ixs.push(await closeSessionIx(program, owner.publicKey, session));
+    await sendAndConfirmTransaction(conn, new Transaction().add(...ixs), [owner]);
+    console.log(`session ${session.toBase58()} revoked and closed`);
+  }
+  if (!existing || process.env.FRESH_SESSION === "1") {
     const now = Math.floor(Date.now() / 1000);
     await sendAndConfirmTransaction(
       conn,

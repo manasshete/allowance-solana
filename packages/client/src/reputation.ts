@@ -35,3 +35,11 @@ export async function fetchReputation(connection: Connection, asset: PublicKey):
     atomStats: atomStats.toBase58(),
   };
 }
+
+/** The score (0..100) stored in an ATOM stats account's data, as the program computes it. Null if not one. */
+export function scoreFromAtomStats(data: Uint8Array): number | null {
+  if (data.length < 100 || !STATS_DISC.every((b, i) => data[i] === b)) return null;
+  const buf = Buffer.from(data);
+  if (buf.readBigUInt64LE(88) === 0n) return 0;
+  return Math.floor(Math.min(buf.readUInt16LE(98), 10_000) / 100);
+}
