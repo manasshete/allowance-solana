@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>An on-chain spending firewall and AI jar for Solana. Give Claude, Cursor, or autonomous agents a wallet they can only spend within your rules.</strong>
+  <strong>Agentic wallet infrastructure on Solana. Give Claude, Cursor or any autonomous agent its own wallet key, with caps, merchants, approvals and a kill switch enforced on-chain.</strong>
 </p>
 
 <p align="center">
@@ -20,20 +20,16 @@
 
 - [The Problem & Threat Model](#-the-problem--threat-model)
 - [What is Allowance?](#-what-is-allowance)
+  - [The four layers](#the-four-layers)
 - [🎬 Product Demo & Walkthrough Video](#-product-demo--walkthrough-video)
 - [🔮 Architecture & System Design](#-architecture--system-design)
-- [🖥️ Minimalist Cyberpunk HUD Walkthrough](#-minimalist-cyberpunk-hud-walkthrough)
-  - [1. Control Plane & 3D Jar (`/app`)](#1-control-plane--3d-jar-app)
-  - [2. Recipients & 3D Radar Resolver (`/app/contacts`)](#2-recipients--3d-radar-resolver-appcontacts)
-  - [3. Policy Blueprint HUD (`/app/sessions/new`)](#3-policy-blueprint-hud-appsessionsnew)
-  - [4. Human-In-The-Loop Approvals (`/app/approvals`)](#4-human-in-the-loop-approvals-appapprovals)
-  - [5. Transaction History & Audit Trail (`/app/activity`)](#5-transaction-history--audit-trail-appactivity)
+- [🖥️ Dashboard Walkthrough](#️-dashboard-walkthrough)
 - [🤖 Model Context Protocol (MCP) Integration](#-model-context-protocol-mcp-integration)
   - [Available MCP Tools](#available-mcp-tools)
   - [Connecting to Claude Desktop](#connecting-to-claude-desktop)
   - [Connecting to Cursor IDE](#connecting-to-cursor-ide)
 - [🌐 HTTP 402 / x402 Micropayments](#-http-402--x402-micropayments)
-- [🚦 On-Chain Firewall Rules & Invariants](#-on-chain-firewall-rules--invariants)
+- [🚦 On-Chain Policy Rules & Invariants](#-on-chain-policy-rules--invariants)
 - [⚙️ Solana Program Accounts (PDA Schema)](#-solana-program-accounts-pda-schema)
 - [🛠️ Local Development & LiteSVM Testing](#-local-development--litesvm-testing)
 - [📂 Repository Structure](#-repository-structure)
@@ -52,7 +48,7 @@ Autonomous AI agents (powered by Claude, GPT-4, Llama 3, or Cursor) are rapidly 
 └─────────────────┘                             │  (Unconstrained Funds) │       (Prompt Injection / Bugs)
                                                 └────────────────────────┘
 
-✅ Allowance Approach: On-Chain Spending Firewall
+✅ Allowance Approach: Agentic Wallet with On-Chain Policy
 ┌─────────────────┐    Restricted Agent Key     ┌────────────────────────┐       Only Allowed Under Rules
 │  AI Agent / LLM │ ──────────────────────────► │ Solana Program PDA     │ ──────────────────────────────► Recipient
 └─────────────────┘                             │ (Vault + Session Caps) │
@@ -66,22 +62,24 @@ Autonomous AI agents (powered by Claude, GPT-4, Llama 3, or Cursor) are rapidly 
 3. **No Granular Scoping**: Standard crypto wallets have no concept of "spend max $5/day" or "only pay contacts named Alex". Either the agent has full access, or none.
 4. **Off-Chain Guardrails Are Fragile**: Client-side checks in Python/TypeScript can easily be bypassed, crashed, or misconfigured. 
 
-**Allowance shifts the boundary to the blockchain.** The Solana program enforces hard spending rules at the virtual machine layer: if an agent violates even one constraint, the transaction fails and produces an immutable on-chain audit refusal.
+**Allowance gives agents a wallet of their own and moves the boundary to the blockchain.** The Solana program enforces hard spending rules at the virtual machine layer: if an agent violates even one constraint, the transaction fails and produces an immutable on-chain audit refusal.
 
 ---
 
 ## ⚡ What is Allowance?
 
-**Allowance** is an on-chain spending firewall and dedicated AI Jar built specifically for Solana:
+**Allowance is agentic wallet infrastructure for Solana.** It is everything an AI agent needs to hold and spend money safely: a wallet the owner controls, a separate key for each agent, a tool interface the agent can call, and a policy engine that runs inside every transaction.
 
-- 🏺 **The AI Jar (`Vault` PDA)**: The owner deposits an allocated budget (e.g. 50 USDC). The agent never touches the owner's personal Phantom wallet or main savings.
-- 📜 **Scoped AI Sessions (`Session` PDA)**: The owner creates a cryptographic session for an agent public key, locking down:
-  - **Per-request maximums** (e.g. transfers over 5 USDC require human approval).
-  - **Daily rolling limits** (e.g. max 20 USDC spent per 24-hour window, automatically resetting).
-  - **Contact whitelists & listed merchant caps** (e.g. "friend", "OpenAI API", with individual allowances).
-  - **Expiry timestamps** (sessions automatically become invalid after a set duration).
-- 🤝 **Human-in-the-Loop (`PendingVoucher` PDA)**: When an agent needs to make an unusual or high-value payment, it issues an on-chain voucher that the owner can approve with 1-click in the dashboard.
-- 🛑 **Owner Kill-Switch**: The owner can instantly pause the vault or revoke any session on-chain with a single transaction.
+The owner keeps full control from Phantom. Each agent only ever gets a capped, revocable session key, so a hijacked or buggy agent can spend at most what its session allows.
+
+### The four layers
+
+| Layer | What it is | What it does |
+|---|---|---|
+| 🏦 **Vault** | A program-owned wallet (`Vault` PDA + token account) | Holds the funds agents may spend. Only the owner's wallet can deposit, withdraw, freeze or unfreeze. Agents never touch the owner's Phantom wallet. |
+| 🔑 **Session keys** | One `Session` PDA per agent public key | Per-request cap, rolling 24-hour daily cap, listed merchants and contacts with their own caps, a reputation floor for everyone else, and an expiry. Revoke one agent without touching the others. |
+| 🤖 **MCP server** | `apps/mcp`, runs beside Claude, Cursor or any MCP client | Gives the agent wallet tools: check its allowance, pay a contact by name, pay an x402 API, ask the owner for approval, check a merchant, read its history. |
+| 🛡️ **Policy engine** | The `agent_pay` instruction of the Anchor program | Checks every rule inside the transaction. A refusal fails on-chain with the rule that fired. Over-cap payments become `PendingVoucher` approval requests, and one switch freezes every agent at once. |
 
 ---
 
@@ -93,7 +91,7 @@ Autonomous AI agents (powered by Claude, GPT-4, Llama 3, or Cursor) are rapidly 
   </video>
   <br />
   <p>
-    <em>Full walkthrough: funding the AI jar, setting session rules, resolving contacts with the 3D Radar, and autonomous conversational payments using Claude via MCP.</em>
+    <em>Full walkthrough: funding the vault, issuing an agent session, resolving contacts by name, and conversational payments from Claude via MCP.</em>
     <br />
     <sub>📝 English subtitles included in <a href="./docs/allowance-how-to-use.srt"><code>docs/allowance-how-to-use.srt</code></a></sub>
   </p>
@@ -145,81 +143,25 @@ Autonomous AI agents (powered by Claude, GPT-4, Llama 3, or Cursor) are rapidly 
 
 ---
 
-## 🖥️ Minimalist Cyberpunk HUD Walkthrough
+## 🖥️ Dashboard Walkthrough
 
-The Allowance dashboard is crafted as a high-fidelity cyberpunk control plane built with **Next.js 16**, **CSS 3D perspective transforms**, **WebGL/Canvas 3D engines**, and **Tailwind CSS**.
+The owner dashboard (`apps/web`, **Next.js 16**) is the control plane for your agents' wallet. It only reads from the chain and asks Phantom to sign; every rule is enforced by the program, not the site. It uses a dark, glass-and-ambient-light design with scroll reveals and micro-interactions, all CSS and a few lines of React, and turns motion off under `prefers-reduced-motion`. Any vault can be browsed read-only with `/app?view=<owner address>`.
 
----
-
-### 1. Control Plane & 3D Jar (`/app`)
-
-<p align="center">
-  <img src="./assets/screen-overview.svg" alt="Overview Jar" width="100%" />
-</p>
-
-- **Interactive 3D Glass Jar**: Renders a dynamic, liquid-filled 3D vessel that visually reflects your allocated balance, capacity, and real-time fill level with fluid particles.
-- **Dedicated Allocation Address**: Phantom wallet stays completely sealed; agents only draw funds from this isolated PDA address.
-- **Quick-Funding Suite**: Scan the QR code with mobile Phantom or copy the deposit address with 1 click.
-- **Real-Time Telemetry**: Live metrics for total active sessions, cumulative transaction count, and daily volume spent.
-
----
-
-### 2. Recipients & 3D Radar Resolver (`/app/contacts`)
-
-<p align="center">
-  <img src="./assets/screen-contacts.svg" alt="Contacts Radar Resolver" width="100%" />
-</p>
-
-- **3D Radar Scanner HUD**: An interactive radar screen featuring a sweeping beam, concentric range rings, and floating target blips.
-- **Strict Resolution Policy**: Eliminates ambiguity. If Claude is told *"pay 1 to my friend"*, the system strictly matches the verified contact entry and never guesses or hallucinates an address.
-- **Speech Standby HUD**: Visual audio-mode toggle indicating voice-payment readiness.
-- **Resolver Testbench**: Live sandbox input to test recipient resolution directly in the browser before invoking agent commands.
-
----
-
-### 3. Policy Blueprint HUD (`/app/sessions/new`)
-
-<p align="center">
-  <img src="./assets/screen-blueprint.svg" alt="Create AI Session Blueprint" width="100%" />
-</p>
-
-- **Real-Time Isometric Blueprint**: A live-updating HUD card that visually reflects your session parameters (agent avatar, duration, daily budget, per-tx cap, approval triggers) as you type.
-- **Per-Transaction & Daily Guardrails**: Hard numerical caps that prevent runaway agents.
-- **Approval Thresholds**: Configure the exact threshold above which payments must pause and wait for owner review.
-- **Granular Permissions & Feature Flags**:
-  - `Allow DeFi swap execute`: Opt-in permission for autonomous token swaps.
-  - `Allow x402 API payments`: Opt-in micropayments for paywalled HTTP APIs.
-
----
-
-### 4. Human-In-The-Loop Approvals (`/app/approvals`)
-
-<p align="center">
-  <img src="./assets/screen-approvals.svg" alt="Approvals Queue" width="100%" />
-</p>
-
-- **Pending Voucher Queue**: Payments requested by the AI agent exceeding the session's per-transaction threshold are paused and held here.
-- **2-Minute Auto-Expiry**: Vouchers automatically self-expire on-chain if left unreviewed, preventing stale execution attacks.
-- **1-Click Phantom Authorization**: Owners can review the payee, requested amount, and agent reason, approving or rejecting with a single wallet signature.
-- **Approval History Ledger**: Full audit trail of approved, rejected, and expired vouchers.
-
----
-
-### 5. Transaction History & Audit Trail (`/app/activity`)
-
-<p align="center">
-  <img src="./assets/screen-history.svg" alt="Transaction History" width="100%" />
-</p>
-
-- **Dual-Column Audit Ledger**: Side-by-side presentation separating high-level Allowance agent transfers from low-level on-chain Solana allocation events.
-- **On-Chain Refusal Logging**: Every blocked or refused transaction records the precise reason and error code on-chain.
-- **Explorer Deep-Links**: Direct 1-click links to Solana Devnet Explorer for every transaction signature.
+| Page | What you do there |
+|---|---|
+| **Overview** (`/app`) | See the vault balance, active agent sessions, today's spend and recent transactions. Fund the vault from Phantom or by QR code. |
+| **Vault** (`/app/vault`) | Withdraw (works even while frozen), and freeze or unfreeze every agent with the kill switch. |
+| **Agent sessions** (`/app/sessions`) | Issue a session key to an agent (caps, merchants, reputation floor, expiry), watch its spend meters, and revoke it. |
+| **Contacts** (`/app/contacts`) | Save names for addresses and test how the MCP server resolves "pay my friend" before an agent does. It never guesses an address. |
+| **Activity** (`/app/activity`) | Every agent payment, paid or refused with the rule that fired, and every action on the vault, with Explorer links. |
+| **Approvals** (`/app/approvals`) | Approve or reject an agent's over-cap request with one Phantom signature. An approved request can be paid exactly once. |
+| **Merchants** (`/app/merchants`) | Who your agents may pay: listed merchants with their caps, and reputation lookups on the Agent Registry. |
 
 ---
 
 ## 🤖 Model Context Protocol (MCP) Integration
 
-The **Allowance MCP Server** (`apps/mcp`) implements Anthropic's Model Context Protocol over `stdio`. It turns Claude Desktop or Cursor into an autonomous financial agent that operates strictly within your on-chain firewall.
+The **Allowance MCP Server** (`apps/mcp`) implements Anthropic's Model Context Protocol over `stdio`. It is the agent's side of the wallet: it turns Claude Desktop or Cursor into an agent that holds a session key and can pay, but only within the rules the program enforces.
 
 ### Conversational Examples
 
@@ -316,7 +258,7 @@ Facilitator   ──► Verifies on-chain settlement & unlocks HTTP 200 data str
 
 ---
 
-## 🚦 On-Chain Firewall Rules & Invariants
+## 🚦 On-Chain Policy Rules & Invariants
 
 Every call to the `agent_pay` Anchor instruction runs through a deterministic battery of on-chain invariant checks:
 
@@ -352,7 +294,7 @@ Every call to the `agent_pay` Anchor instruction runs through a deterministic ba
 - Docker Desktop
 - Rust & Solana CLI (optional, containerized by default)
 
-### 1. Launch 3D Dashboard with Docker
+### 1. Launch the Dashboard with Docker
 ```powershell
 # Build and run the Next.js 16 dashboard on http://localhost:3100
 bash scripts/docker/web-build.sh
@@ -395,7 +337,7 @@ bash scripts/docker/e2e-devnet.sh
 │   └── src/
 │       ├── lib.rs              # Instruction entrypoints (agent_pay, create_session, approve, freeze)
 │       ├── state.rs            # PDA account structs (Vault, Session, PendingVoucher, MerchantCap)
-│       ├── errors.rs           # On-chain firewall error matrix
+│       ├── errors.rs           # On-chain policy error codes
 │       └── events.rs           # Audit trail event definitions
 ├── packages/client/            # TypeScript SDK
 │   └── src/
@@ -403,18 +345,18 @@ bash scripts/docker/e2e-devnet.sh
 │       ├── pda.ts              # PDA seed derivations
 │       └── history.ts          # On-chain transaction and refusal parser
 ├── apps/
-│   ├── web/                    # Next.js 16 Cyberpunk HUD Dashboard (Turbopack)
-│   │   ├── src/app/app/        # Dashboard routes (Jar Overview, Contacts, Blueprint, Approvals, History)
-│   │   └── src/components/     # 3D Jar Canvas, 3D Radar, Blueprint HUD, Particle systems
+│   ├── web/                    # Next.js 16 owner dashboard (Turbopack)
+│   │   ├── src/app/app/        # Dashboard routes (Overview, Vault, Sessions, Contacts, Activity, Approvals, Merchants)
+│   │   └── src/components/     # Shell, motion runtime, hero visual, shared UI
 │   ├── mcp/                    # Model Context Protocol Server (Claude & Cursor integration)
 │   ├── facilitator/            # HTTP 402 Facilitator service (ExactSvm verification & settlement)
 │   └── paid-api/               # Demo HTTP 402 paywalled API endpoints
 ├── assets/                     # Minimalist SVG banners, architecture diagrams & screen mockups
 │   ├── allowance-banner.svg    # Minimalist project banner
 │   ├── architecture.svg        # System architecture flow diagram
-│   ├── screen-overview.svg     # 3D Jar & Control Plane mockup
-│   ├── screen-contacts.svg     # 3D Radar Resolver HUD mockup
-│   ├── screen-blueprint.svg    # Policy Blueprint HUD mockup
+│   ├── screen-overview.svg     # Overview mockup (earlier 3D design)
+│   ├── screen-contacts.svg     # Contacts mockup (earlier 3D design)
+│   ├── screen-blueprint.svg    # New-session mockup (earlier design)
 │   ├── screen-approvals.svg    # Human-in-the-loop approvals mockup
 │   └── screen-history.svg      # Split-view transaction audit trail mockup
 ├── docs/                       # Walkthrough media assets
