@@ -45,6 +45,12 @@
   --color-scrim-soft: rgb(0 0 0 / 0.4);
   --color-danger-wash: rgb(244 130 82 / 0.12);
   --shadow-float: 0 24px 48px -24px rgb(0 0 0 / 0.9);
+  --color-panel-3: #0c0c0e;
+  --color-edge-2: #2e2e36;
+  --tint-green: rgb(20 241 149 / 0.12); --edge-green: rgb(20 241 149 / 0.3);
+  --tint-purple: rgb(153 69 255 / 0.12); --edge-purple: rgb(153 69 255 / 0.3);
+  --tint-ok: rgb(85 233 171 / 0.12); --edge-ok: rgb(85 233 171 / 0.3);
+  --tint-gold: rgb(255 197 38 / 0.12); --edge-gold: rgb(255 197 38 / 0.3);
   --ramp: linear-gradient(90deg, var(--color-purple), var(--color-green));
 
   --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
@@ -277,7 +283,7 @@ input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--color-danger); }
   .merchant-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 @media (max-width: 40rem) {
-  :root { --gutter: 16px; --gap-columns: 16px; }
+  :root { --gutter: 16px; --gap-columns: var(--space-md); }
   .board, .well, .plate { padding: var(--space-md); }
   .topbar__end { gap: var(--space-sm); }
   .topbar__end > a:not(.btn) { display: none; }
@@ -315,4 +321,522 @@ input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--color-danger); }
 @media (max-width: 60rem) {
   .form-layout { grid-template-columns: minmax(0, 1fr); }
   .rules { position: static; order: -1; }
+}
+
+/* ==========================================================================
+   3D ANIMATIONS & HIGH-TECH WEB3 VISUALS
+   ========================================================================== */
+
+/* 3D Global Canvas */
+
+/* Ensure content sits above the 3D canvas */
+.topbar, main, .container, .foot {
+  position: relative;
+  z-index: 1;
+}
+
+/* Interactive 3D Perspective Card */
+.card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  position: relative;
+  border-radius: var(--radius-card);
+  transition: transform 0.14s var(--ease-out), box-shadow 0.25s ease;
+  will-change: transform;
+}
+
+.card-3d:hover {
+  box-shadow: none;
+}
+
+/* Floating 3D Hero Widget */
+
+/* 3D Interactive Pipeline */
+
+/* 3D Floating Animations */
+
+/* 3D Refusal Cards */
+.refusal {
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease;
+}
+
+.refusal:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: none;
+}
+
+/* 3D Buttons */
+.btn {
+  transform-style: preserve-3d;
+  transition: transform 0.12s var(--ease-out), box-shadow 0.2s ease, background-color var(--dur-micro) var(--ease-out);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn--primary:hover {
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   PAY3 HUD REPLICA SCREENS (Overview Jar, Contacts, Approvals, History, Policy Blueprint)
+   ========================================================================== */
+
+.text-mint { color: var(--color-green) !important; }
+.text-ok { color: var(--color-ok) !important; }
+.text-refused { color: var(--color-refused) !important; }
+.text-danger { color: var(--color-danger) !important; }
+
+/* 3D Allocated Jar Card */
+
+/* Fund Card */
+.hud-card {
+  background: var(--color-panel-3);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.hud-card__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.hud-card__sub {
+  color: var(--color-ink-3);
+  font-size: 0.875rem;
+  margin-top: var(--space-2xs);
+  margin-bottom: 20px;
+}
+
+.fund-layout {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.fund-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.qr-box {
+  background: var(--color-cta); /* QR codes need a white quiet zone to scan (waive 7a) */
+  padding: var(--space-xs);
+  border-radius: 10px;
+  display: inline-block;
+  box-shadow: none;
+}
+
+.qr-canvas {
+  display: block;
+}
+
+.fund-qr-caption {
+  font-size: 0.6875rem;
+  color: var(--color-ink-3);
+  text-align: center;
+}
+
+.addr-box {
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: var(--space-xs) var(--space-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.addr-text {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn--copy {
+  background: var(--color-edge);
+  border: none;
+  border-radius: 6px;
+  padding: var(--space-2xs) 10px;
+  font-size: 0.75rem;
+  color: var(--color-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn--copy:hover {
+  background: var(--color-edge-2);
+}
+
+.fund-input-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.fund-input-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.fund-input-wrap input {
+  padding-right: 56px;
+}
+
+.fund-input-unit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-ink-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.fund-steps {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--color-ink-3);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-lavender);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* Radar 3D Component */
+
+/* Contacts List */
+.contacts-list {
+  display: grid;
+  gap: 10px;
+}
+
+.contact-row {
+  background: var(--color-panel-3);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contact-info {
+  display: grid;
+  gap: var(--space-3xs);
+}
+
+.contact-name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.contact-addr {
+  font-size: 0.75rem;
+  color: var(--color-ink-3);
+}
+
+.contact-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* Resolver Output */
+.resolver-output {
+  margin-top: 14px;
+  padding: var(--space-sm) 14px;
+  background: var(--color-panel-2);
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+}
+
+.resolver-success, .resolver-fail {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+/* Blueprint HUD Card */
+
+/* Dashed Box & Split Lists */
+.dashed-box {
+  border: 1px dashed var(--color-line);
+  border-radius: 12px;
+  padding: 48px var(--space-lg);
+  text-align: center;
+  color: var(--color-ink-3);
+  font-size: 0.875rem;
+  background: var(--color-panel);
+}
+
+.split-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+
+.split-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-3);
+}
+
+.split-count {
+  font-size: 0.8125rem;
+  color: var(--color-ink-3);
+}
+
+.onchain-table-card {
+  display: grid;
+  gap: 10px;
+}
+
+.onchain-row {
+  background: var(--color-panel-3);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.onchain-row__main {
+  display: grid;
+  gap: var(--space-3xs);
+}
+
+.onchain-row__line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.onchain-row__title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.onchain-row__time {
+  font-size: 0.75rem;
+}
+
+.onchain-row__hash {
+  font-size: 0.8125rem;
+  color: var(--color-lavender);
+  text-decoration: none;
+}
+.onchain-row__hash:hover {
+  text-decoration: underline;
+}
+
+.pill-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: 9999px;
+}
+
+.badge-cyan {
+  background: var(--tint-green);
+  color: var(--color-green);
+  border: 1px solid var(--edge-green);
+}
+
+.badge-purple {
+  background: var(--tint-purple);
+  color: var(--color-lavender);
+  border: 1px solid var(--edge-purple);
+}
+
+.badge-green {
+  background: var(--tint-ok);
+  color: var(--color-ok);
+  border: 1px solid var(--edge-ok);
+}
+
+.badge-amber {
+  background: var(--tint-gold);
+  color: var(--color-refused);
+  border: 1px solid var(--edge-gold);
+}
+
+/* Activity Items */
+.activity-list, .approval-list {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-item, .approval-item {
+  display: grid;
+  gap: 6px;
+  padding: var(--space-md) 20px;
+}
+
+.activity-item__top, .approval-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.activity-item__reason, .approval-reason {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.activity-item__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.approval-merchant {
+  font-size: 0.75rem;
+  color: var(--color-ink-3);
+  margin: 0;
+}
+
+.approval-actions {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: 6px;
+}
+
+/* HUD Toggles in Create Session */
+.hud-toggles {
+  display: grid;
+  gap: 10px;
+  margin-block: var(--space-xs);
+}
+
+.hud-checkbox-card {
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  padding: var(--space-sm) 14px;
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.hud-checkbox-card:hover:not(.is-disabled) {
+  border-color: var(--color-line-strong);
+}
+
+.hud-checkbox-card.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hud-checkbox-copy {
+  display: grid;
+  gap: var(--space-3xs);
+}
+
+.hud-checkbox-copy strong {
+  font-size: 0.875rem;
+}
+
+.hud-checkbox-copy span {
+  font-size: 0.75rem;
+  color: var(--color-ink-3);
+}
+
+.hud-checkbox-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--color-ink-2);
+  margin-block: var(--space-2xs);
+  cursor: pointer;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.asset-locked {
+  background: var(--color-panel-2) !important;
+  color: var(--color-ink-2) !important;
+  cursor: not-allowed;
+}
+
+.listed-contacts-section {
+  display: grid;
+  gap: 6px;
+  margin-block: 6px;
+}
+
+.listed-contacts-section label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-3);
+}
+
+
+
+/* ---------- design-taste review fixes (2026-11-07): sentence case, no ornament, phone frame ---------- */
+.split-title, .pill-badge, .listed-contacts-section label { text-transform: none; letter-spacing: 0; }
+.split-title { font-size: var(--text-lg); font-weight: 700; letter-spacing: var(--tracking-display); color: var(--color-ink); margin: 0; }
+.pill-badge { font-weight: 500; }
+
+/* stats beside a page head */
+.stats--inline { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.stats--inline .stat { min-width: 150px; }
+.stats--inline .stat dd { font-size: var(--text-xl); }
+.field__label { font-size: var(--text-sm); font-weight: 500; }
+
+/* a real ordered list where order matters (replaces numbered icon cards) */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--gap-columns); counter-reset: none; }
+.flow > li { display: grid; gap: var(--space-sm); align-content: start; padding: var(--space-lg); background: var(--color-panel); border-radius: var(--radius-card); }
+.flow > li p { color: var(--color-ink-2); }
+.flow--compact { grid-template-columns: minmax(0, 1fr); gap: var(--space-sm); }
+.flow--compact > li { padding: 0; background: none; }
+.flow--compact > li p { color: var(--color-ink-2); }
+.flow--compact strong { color: var(--color-ink); }
+
+/* the vault address wraps inside its card instead of running off it */
+.addr-box { min-width: 0; }
+.addr-text { min-width: 0; overflow-wrap: anywhere; word-break: break-all; }
+.fund-details, .fund-layout { min-width: 0; }
+
+/* the tab row shows that it scrolls */
+.tabs__inner { mask-image: linear-gradient(90deg, var(--color-ground) calc(100% - 40px), transparent); padding-right: var(--space-xl); }
+
+/* hero headline: two lines on desktop */
+.hero h1 { max-width: none; font-size: clamp(2.75rem, 4.6vw, 4.25rem); }
+@media (max-width: 60rem) { .fund-layout { grid-template-columns: minmax(0, 1fr) !important; }
 }

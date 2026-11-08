@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "allowance": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "npx tsx apps/mcp/src/index.ts"
+      ],
+      "env": {
+        "RPC_URL": "https://api.devnet.solana.com",
+        "AGENT_KEYPAIR": "keys/agent.json",
+        "VAULT_OWNER": "EibuVg8LKVrgXqZBQeDeCLXNXvViUkyaKKcQAsbzFJLG",
+        "USDC_MINT": "7XhdZfnuTzRjC8eUQF2CE4bEcCyDgjgxoNLjHC1YN5yL",
+        "MERCHANTS_FILE": "config/merchants.json",
+        "DASHBOARD_URL": "http://localhost:3100"
+      }
+    }
+  }
+}

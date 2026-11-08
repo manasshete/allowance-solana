@@ -11,6 +11,8 @@ export function when(unix: number | null) {
   return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
 }
 
+export const formatTime = when;
+
 export function timeLeft(expiresAt: number) {
   const s = expiresAt - Math.floor(Date.now() / 1000);
   if (s <= 0) return "expired";

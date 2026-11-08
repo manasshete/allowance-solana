@@ -29,7 +29,12 @@ const DASHBOARD = () => process.env.DASHBOARD_URL ?? "http://localhost:3100";
 export function registerTools(server: McpServer, ctx: AgentContext, merchants: Record<string, MerchantInfo>, z: typeof Zod) {
   const vault = vaultPda(ctx.owner);
   const session = sessionPda(vault, ctx.agent.publicKey);
-  const label = (addr: string) => merchants[addr]?.label ?? addr;
+  const getSession = () => fetchSession(ctx.program, session).catch(() => null);
+  const label = (addr: string, sessionMerchants?: { merchant: PublicKey; label: string }[]) => {
+    const fromSession = sessionMerchants?.find((m) => m.merchant.toBase58() === addr);
+    if (fromSession?.label) return fromSession.label;
+    return merchants[addr]?.label ?? addr;
+  };
 
   /** Every tool refuses with the same sentence until the owner has created a session for this agent key. */
   const guard = async () => {
@@ -112,21 +117,27 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
     "transfer",
     {
       title: "Pay a contact",
-      description: "Send USDC from the allowance to a contact (by name) or address. The program applies the same caps.",
+      description:
+        "Send tokens from the Allowance vault to a contact (by label/name saved in your session like 'friend', 'alice', or a Solana address). The Allowance vault holds SPL tokens (USDC on Solana devnet). The Allowance program enforces the owner's caps on-chain.",
       inputSchema: {
-        to: z.string().describe("Contact name like 'alice' or a Solana address"),
-        amount: z.string().regex(/^\d+(\.\d{1,6})?$/).describe("Amount in USDC, e.g. 0.05"),
-        reason: z.string().min(1).max(200),
+        to: z.string().describe("Contact name saved in the session (e.g. 'friend', 'alice') or a Solana address"),
+        amount: z.string().regex(/^\d+(\.\d{1,6})?$/).describe("Amount in USDC, e.g. '1' or '0.5' (vault holds USDC)"),
+        reason: z.string().min(1).max(200).describe("Reason for this payment for the owner's audit log"),
       },
     },
     async ({ to, amount, reason }) => {
       const blocked = await guard();
       if (blocked) return blocked;
-      const dest = resolveRecipient(to, merchants);
-      if (!dest) return text(`Unknown recipient "${to}".`);
+      const s = await getSession();
+      const dest = resolveRecipient(to, merchants, s?.merchants);
+      if (!dest) {
+        const available = s?.merchants.map((m) => `"${m.label}" (${m.merchant.toBase58()})`).join(", ") || "none";
+        return text(`Unknown recipient "${to}". Known contacts in your session: ${available}`);
+      }
       const r = await payDirect(ctx, dest, toBN(parseUsdc(amount)), reason);
+      const recipientName = label(dest.toBase58(), s?.merchants);
       return r.status === "paid"
-        ? text(`Sent ${r.amount} to ${label(r.merchant)}. Transaction: ${r.link}`)
+        ? text(`Sent ${r.amount} USDC to ${recipientName} (${dest.toBase58()}).\nTransaction: ${r.link}`)
         : text(`${"message" in r ? r.message : "Failed"}${"link" in r && r.link ? `\nRecorded on-chain: ${r.link}` : ""}`);
     },
   );
@@ -146,10 +157,13 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
     async ({ to, amount, reason }) => {
       const blocked = await guard();
       if (blocked) return blocked;
-      const dest = resolveRecipient(to, merchants);
-      if (!dest) return text(`Unknown recipient "${to}".`);
-      const s = await fetchSession(ctx.program, session);
+      const s = await getSession();
       if (!s) return text("No session for this agent.");
+      const dest = resolveRecipient(to, merchants, s.merchants);
+      if (!dest) {
+        const available = s.merchants.map((m) => `"${m.label}" (${m.merchant.toBase58()})`).join(", ") || "none";
+        return text(`Unknown recipient "${to}". Known contacts in your session: ${available}`);
+      }
       const { ix, pending } = await requestApprovalIx(ctx.program, {
         agent: ctx.agent.publicKey,
         owner: ctx.owner,
@@ -164,7 +178,7 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
       const sig = await ctx.connection.sendTransaction(tx, [ctx.agent], { skipPreflight: false });
       await ctx.connection.confirmTransaction(sig, "confirmed");
       return text(
-        `Approval requested (${amount} to ${label(dest.toBase58())}). Pending: ${pending.toBase58()}\n` +
+        `Approval requested (${amount} USDC to ${label(dest.toBase58(), s.merchants)}).\nPending: ${pending.toBase58()}\n` +
           `The owner can approve it at ${DASHBOARD()}/app/approvals/${pending.toBase58()}\nTransaction: ${explorerTx(sig)}`,
       );
     },
@@ -180,12 +194,15 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
     async ({ pending }) => {
       const blocked = await guard();
       if (blocked) return blocked;
-      const p = await fetchPending(ctx.program, new PublicKey(pending));
+      const [p, s] = await Promise.all([
+        fetchPending(ctx.program, new PublicKey(pending)),
+        getSession(),
+      ]);
       if (!p) return text("No such request.");
       return json({
         status: pendingStatus(p),
-        amount: formatUsdc(p.amount.toString()),
-        to: label(p.merchant.toBase58()),
+        amount: `${formatUsdc(p.amount.toString())} USDC`,
+        to: `${label(p.merchant.toBase58(), s?.merchants)} (${p.merchant.toBase58()})`,
         reason: p.reason,
       });
     },
@@ -195,19 +212,20 @@ export function registerTools(server: McpServer, ctx: AgentContext, merchants: R
     "check_merchant",
     {
       title: "Check a merchant",
-      description: "Whether the session lists this merchant, its daily cap, and whether the reputation gate applies.",
-      inputSchema: { address: z.string() },
+      description: "Whether the session lists this merchant or contact, its daily cap, and whether the reputation gate applies.",
+      inputSchema: { address: z.string().describe("Contact label/name or Solana address") },
     },
     async ({ address }) => {
       const blocked = await guard();
       if (blocked) return blocked;
-      const dest = resolveRecipient(address, merchants);
+      const s = await getSession();
+      const dest = resolveRecipient(address, merchants, s?.merchants);
       if (!dest) return text(`Not an address or known contact: ${address}`);
-      const s = await fetchSession(ctx.program, session);
       const listed = s?.merchants.find((m) => m.merchant.equals(dest));
       const info = merchants[dest.toBase58()];
       return json({
-        name: info?.label ?? null,
+        name: listed?.label || info?.label || null,
+        address: dest.toBase58(),
         listed: !!listed,
         cap: listed
           ? `${formatUsdc(listed.spentToday.toString())} of ${formatUsdc(listed.dailyCap.toString())} today`

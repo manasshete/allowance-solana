@@ -28,11 +28,12 @@ import {
   encodePaymentSignatureHeader,
 } from "@x402/core/http";
 
+import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
 import { explorerTx } from "./constants";
 import { describeRefusal, extractError, type AllowanceErrorName } from "./errors";
 import { scoreFromAtomStats } from "./reputation";
 import { agentPayIx, fetchPendings, fetchSession, pendingStatus, type Allowance } from "./program";
-import { sessionPda, vaultPda } from "./pda";
+import { merchantAta, sessionPda, vaultPda } from "./pda";
 import { formatUsdc } from "./units";
 
 const SOLANA_DEVNET = "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
@@ -190,7 +191,14 @@ export async function payDirect(
     reputation,
     pending,
   });
-  const tx = await buildTx(ctx.connection, ctx.agent.publicKey, [ix]);
+  const ata = merchantAta(merchant, ctx.mint);
+  const createAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+    ctx.agent.publicKey,
+    ata,
+    merchant,
+    ctx.mint,
+  );
+  const tx = await buildTx(ctx.connection, ctx.agent.publicKey, [createAtaIx, ix]);
   tx.sign([ctx.agent]);
   const sig = await ctx.connection.sendTransaction(tx, { skipPreflight: true, maxRetries: 3 });
   const conf = await ctx.connection.confirmTransaction(sig, "confirmed");
@@ -250,10 +258,16 @@ async function isListed(ctx: AgentContext, merchant: PublicKey) {
 
 async function findApprovedPending(ctx: AgentContext, merchant: PublicKey, amount: BN) {
   const session = sessionPda(vaultPda(ctx.owner), ctx.agent.publicKey);
+  const s = await fetchSession(ctx.program, session);
+  if (!s) return null;
+  // only approvals of this session instance: a recreated session keeps its address,
+  // and the program refuses vouchers whose PDA was derived from an earlier created_at
+  const mine = pendingPda(session, s.createdAt, null);
   const all = await fetchPendings(ctx.program, vaultPda(ctx.owner));
   const hit = all.find(
     (p) =>
       p.account.session.equals(session) &&
+      mine(p.account.nonce).equals(p.address) &&
       p.account.merchant.equals(merchant) &&
       p.account.amount.eq(amount) &&
       pendingStatus(p.account) === "approved",

@@ -5,7 +5,7 @@ use crate::{
     errors::AllowanceError,
     events::PaymentMade,
     reputation,
-    state::{check_reason, Pending, PendingStatus, Session, Vault, VAULT_SEED},
+    state::{check_reason, Pending, PendingStatus, Session, Vault, PENDING_SEED, VAULT_SEED},
 };
 
 /// The only way USDC leaves the vault for a merchant.
@@ -77,6 +77,22 @@ pub fn handler(ctx: Context<AgentPay>, amount: u64, reason: String) -> Result<()
     // 3. per-request cap, or a one-time approved voucher
     let pending_key = match ctx.accounts.pending.as_mut() {
         Some(p) => {
+            // has_one only matches the session address, which a session closed and recreated
+            // for the same agent keeps. Re-deriving the PDA from this instance's created_at
+            // binds the voucher to the session instance it was approved for, so an approval
+            // granted to an earlier instance cannot be spent by a later one.
+            let expected = Pubkey::create_program_address(
+                &[
+                    PENDING_SEED,
+                    session_key.as_ref(),
+                    &ctx.accounts.session.created_at.to_le_bytes(),
+                    &p.nonce.to_le_bytes(),
+                    &[p.bump],
+                ],
+                ctx.program_id,
+            )
+            .map_err(|_| error!(AllowanceError::PendingMismatch))?;
+            require_keys_eq!(p.key(), expected, AllowanceError::PendingMismatch);
             require_keys_eq!(p.merchant, merchant, AllowanceError::PendingMismatch);
             require!(p.amount == amount, AllowanceError::PendingMismatch);
             require!(p.status == PendingStatus::Approved, AllowanceError::PendingNotApproved);

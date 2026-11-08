@@ -1,96 +1,150 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
-import { pendingStatus } from "@allowance/client";
+import { pendingStatus, resolvePendingIx } from "@allowance/client";
 
-import { PageHead } from "@/components/Bits";
-import { EmptyState, ErrorState, Skeleton } from "@/components/States";
-import { merchantLabels, shortKey, usdc, when } from "@/lib/format";
-import { usePendings, useSessions } from "@/lib/hooks";
+import { Card3D } from "@/components/Card3D";
+import { ErrorState, Skeleton } from "@/components/States";
+import { formatTime, usdc } from "@/lib/format";
+import { useOwner, usePendings, useProgram, useReadOnly, useSessions } from "@/lib/hooks";
+import { useSend } from "@/lib/tx";
 
-function List() {
-  const tab = useSearchParams().get("tab") === "resolved" ? "resolved" : "open";
-  const router = useRouter();
+export default function ApprovalsPage() {
+  const owner = useOwner()!;
+  const program = useProgram();
+  const readOnly = useReadOnly();
   const pendings = usePendings();
   const sessions = useSessions();
-  const labels = merchantLabels(sessions.data);
-  const capOf = new Map(sessions.data?.map((s) => [s.address.toBase58(), s.account.perRequestCap]) ?? []);
+  const send = useSend();
 
-  const rows = (pendings.data ?? [])
-    .filter((p) => (tab === "open" ? pendingStatus(p.account) === "open" : pendingStatus(p.account) !== "open"))
-    .sort((a, b) => b.account.createdAt.toNumber() - a.account.createdAt.toNumber());
+  const all = pendings.data ?? [];
+  const open = all.filter((p) => pendingStatus(p.account) === "open");
+  const resolved = all.filter((p) => pendingStatus(p.account) !== "open");
+
+  const handleResolve = async (p: (typeof all)[0], approve: boolean) => {
+    if (readOnly) return;
+    try {
+      const ix = await resolvePendingIx(program, owner, p.account.session, p.address, approve);
+      await send.mutateAsync({
+        label: `${approve ? "Approve" : "Reject"} payment request`,
+        build: async () => [ix],
+      });
+      pendings.refetch();
+    } catch {
+      /* handled by useSend */
+    }
+  };
 
   return (
     <>
-      <nav className="filters filters--paper" aria-label="Approval status">
-        {(["open", "resolved"] as const).map((t) => (
-          <Link key={t} href={`/app/approvals?tab=${t}`} className={`btn btn--sm ${tab === t ? "btn--ink" : "btn--ghost"}`} aria-current={tab === t ? "page" : undefined}>
-            {t === "open" ? "Open" : "Resolved"}
-          </Link>
-        ))}
-      </nav>
+      <div className="pagehead">
+        <div>
+          <h1>Approvals</h1>
+          <p className="muted">
+            Payments above a session&apos;s per-request cap wait here until you approve or reject them. An approval works
+            once, for that merchant and amount.
+          </p>
+        </div>
+      </div>
+
       {pendings.isLoading ? (
-        <Skeleton />
+        <Skeleton onInk />
       ) : pendings.error ? (
         <ErrorState error={pendings.error} retry={() => pendings.refetch()} />
-      ) : rows.length === 0 ? (
-        <EmptyState title={tab === "open" ? "Nothing waiting for you" : "No resolved requests"}>
-          When a payment is over the per-request cap, the agent can ask with request_approval. It shows up here.
-        </EmptyState>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Asked</th>
-              <th scope="col">Merchant</th>
-              <th scope="col" className="r">
-                Amount
-              </th>
-              <th scope="col" className="r">
-                Cap
-              </th>
-              <th scope="col">Reason</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ address, account: p }) => {
-              const href = `/app/approvals/${address.toBase58()}`;
-              const m = p.merchant.toBase58();
-              return (
-                <tr key={href} className="is-link" onClick={() => router.push(href)}>
-                  <td data-label="Asked">
-                    <Link href={href}>{when(p.createdAt.toNumber())}</Link>
-                  </td>
-                  <td data-label="Merchant">{labels.get(m) ?? shortKey(m)}</td>
-                  <td className="r num" data-label="Amount">
-                    {usdc(p.amount)}
-                  </td>
-                  <td className="r num" data-label="Cap">
-                    {usdc(capOf.get(p.session.toBase58()))}
-                  </td>
-                  <td data-label="Reason">{p.reason}</td>
-                  <td data-label="Status">{pendingStatus(p)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-    </>
-  );
-}
+        <div className="grid-2">
+          {/* Left Column: Pending Queue */}
+          <div className="col">
+            <div className="split-head">
+              <h2 className="split-title">Waiting for you</h2>
+              <span className="split-count figure">{open.length}</span>
+            </div>
 
-export default function Approvals() {
-  return (
-    <>
-      <PageHead title="Approvals" sub="Over-cap payments your agent asked for. An approval works once, for that merchant and amount." />
-      <Suspense fallback={<Skeleton />}>
-        <List />
-      </Suspense>
+            {open.length === 0 ? (
+              <div className="dashed-box">No pending approvals.</div>
+            ) : (
+              <div className="approval-list">
+                {open.map((p) => (
+                  <Card3D key={p.address.toBase58()} intensity={10} glare={false}>
+                    <div className="plate approval-item">
+                      <div className="approval-head">
+                        <span className="figure text-mint">{usdc(p.account.amount)} USDC</span>
+                        <span className="pill pill--on-ink text-ok">Open</span>
+                      </div>
+                      <p className="approval-merchant addr mono-id">
+                        To: {p.account.merchant.toBase58()}
+                      </p>
+                      <p className="approval-reason">&ldquo;{p.account.reason}&rdquo;</p>
+                      {!readOnly && (
+                        <div className="approval-actions">
+                          <button
+                            type="button"
+                            className="btn btn--primary"
+                            onClick={() => handleResolve(p, true)}
+                          >
+                            Approve once
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--ghost"
+                            onClick={() => handleResolve(p, false)}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </Card3D>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Approval History */}
+          <div className="col">
+            <div className="split-head">
+              <h2 className="split-title">Resolved</h2>
+              <span className="split-count figure">{resolved.length}</span>
+            </div>
+
+            {resolved.length === 0 ? (
+              <div className="dashed-box">No resolved approvals yet.</div>
+            ) : (
+              <div className="approval-list">
+                {resolved.map((p) => {
+                  const status = pendingStatus(p.account);
+                  return (
+                    <Card3D key={p.address.toBase58()} intensity={8} glare={false}>
+                      <div className="plate approval-item">
+                        <div className="approval-head">
+                          <span className="figure">{usdc(p.account.amount)} USDC</span>
+                          <span
+                            className={`pill pill--on-ink ${
+                              status === "approved" || status === "used"
+                                ? "text-mint"
+                                : "text-danger"
+                            }`}
+                          >
+                            {status}
+                          </span>
+                        </div>
+                        <p className="approval-merchant addr mono-id">
+                          To: {p.account.merchant.toBase58()}
+                        </p>
+                        <p className="approval-reason muted">&ldquo;{p.account.reason}&rdquo;</p>
+                        <span className="approval-time muted">
+                          Resolved {formatTime(p.account.resolvedAt.toNumber())}
+                        </span>
+                      </div>
+                    </Card3D>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -59,14 +59,39 @@ export function buildContext() {
   return { ctx, merchants, agentPath, created };
 }
 
-/** "alice", "Merchant A" or a base58 address -> wallet. */
-export function resolveRecipient(to: string, merchants: Record<string, MerchantInfo>): PublicKey | null {
-  const q = to.trim().toLowerCase();
-  for (const [addr, m] of Object.entries(merchants)) {
-    if (m.contact?.toLowerCase() === q || m.label.toLowerCase() === q) return new PublicKey(addr);
+/** "alice", "friend", "Merchant A" or a base58 address -> wallet. */
+export function resolveRecipient(
+  to: string,
+  merchants: Record<string, MerchantInfo>,
+  sessionMerchants?: { merchant: PublicKey; label: string }[],
+): PublicKey | null {
+  const trimmed = to.trim();
+  const q = trimmed.toLowerCase();
+  const stripped = q.replace(/^(my|the)\s+/, "");
+
+  // 1. Session contacts added via dashboard (e.g. friend's wallet address with label "friend")
+  if (sessionMerchants && sessionMerchants.length > 0) {
+    for (const m of sessionMerchants) {
+      const lbl = m.label.trim().toLowerCase();
+      const strippedLbl = lbl.replace(/^(my|the)\s+/, "");
+      if (lbl === q || lbl === stripped || strippedLbl === stripped) {
+        return m.merchant;
+      }
+    }
   }
+
+  // 2. config/merchants.json
+  for (const [addr, m] of Object.entries(merchants)) {
+    const contact = m.contact?.trim().toLowerCase();
+    const lbl = m.label.trim().toLowerCase();
+    if (contact === q || contact === stripped || lbl === q || lbl === stripped) {
+      return new PublicKey(addr);
+    }
+  }
+
+  // 3. Raw base58 Solana public key
   try {
-    return new PublicKey(to.trim());
+    return new PublicKey(trimmed);
   } catch {
     return null;
   }

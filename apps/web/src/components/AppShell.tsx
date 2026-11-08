@@ -21,6 +21,7 @@ const TABS = [
   ["/app", "Overview"],
   ["/app/vault", "Vault"],
   ["/app/sessions", "Sessions"],
+  ["/app/contacts", "Contacts"],
   ["/app/activity", "Activity"],
   ["/app/approvals", "Approvals"],
   ["/app/merchants", "Merchants"],
