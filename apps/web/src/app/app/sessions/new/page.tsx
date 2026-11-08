@@ -10,7 +10,7 @@ import { createSessionIx, MAX_MERCHANTS, parseUsdc, toBN } from "@allowance/clie
 
 import { Card3D } from "@/components/Card3D";
 import { saveAgentName } from "@/lib/names";
-import { useOwner, useProgram } from "@/lib/hooks";
+import { useOwner, useProgram, useSessions } from "@/lib/hooks";
 import { useSend } from "@/lib/tx";
 
 type Row = { address: string; label: string; cap: string };
@@ -30,6 +30,7 @@ export default function NewSession() {
   const program = useProgram();
   const router = useRouter();
   const send = useSend();
+  const sessions = useSessions();
 
   const [aiClient, setAiClient] = useState("Claude");
   const [name, setName] = useState("");
@@ -83,6 +84,8 @@ export default function NewSession() {
 
   const errors: Record<string, string> = {};
   if (!isKey(agent)) errors.agent = "Paste the agent public key printed by the MCP server, or generate one";
+  else if (sessions.data?.some((x) => x.account.agent.toBase58() === agent.trim()))
+    errors.agent = "This agent already has a session on your vault. Open it, or revoke and close it first, or use a new agent key.";
   else if (generated && generated.publicKey.toBase58() === agent.trim() && !keySaved)
     errors.agent = "Download agent.json first. Without it the agent can't sign and this session is unusable.";
   if (!isAmount(perTxMax)) errors.perTxMax = "Valid number required";
@@ -100,7 +103,8 @@ export default function NewSession() {
     else if (!isAmount(r.cap) || parseUsdc(r.cap) === 0n) errors[`m${i}`] = "Cap must be above zero";
   });
 
-  const show = (k: string) => (tried ? errors[k] : undefined);
+  const existing = isKey(agent) ? sessions.data?.find((x) => x.account.agent.toBase58() === agent.trim()) : undefined;
+  const show = (k: string) => (tried || (k === "agent" && existing) ? errors[k] : undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -237,7 +241,16 @@ export default function NewSession() {
                       ? "Agent: set up automatically for the MCP server on this computer."
                       : "Finding this computer's agent…"}
                   </span>
-                  {show("agent") && <small className="help help--error">Still loading the agent, try again in a moment</small>}
+                  {show("agent") && (
+                    <small className="help help--error">
+                      {existing ? show("agent") : "Still loading the agent, try again in a moment"}
+                    </small>
+                  )}
+                  {existing && (
+                    <Link className="btn btn--text" style={{ width: "fit-content" }} href={`/app/sessions/${agent.trim()}`}>
+                      Open the existing session
+                    </Link>
+                  )}
                   <button
                     type="button"
                     className="btn btn--text"
