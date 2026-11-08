@@ -1,0 +1,483 @@
+1
+00:00:00,450 --> 00:00:04,370
+This is Allowance: agentic wallet infrastructure on Solana.
+
+2
+00:00:04,420 --> 00:00:07,264
+It gives every AI agent its own wallet key,
+
+3
+00:00:07,314 --> 00:00:10,696
+with spending rules the blockchain itself enforces.
+
+4
+00:00:11,996 --> 00:00:16,173
+AI agents are starting to pay for things: APIs, data, other people.
+
+5
+00:00:16,223 --> 00:00:18,381
+But today you have two bad options.
+
+6
+00:00:18,431 --> 00:00:20,400
+Hand the agent your private key,
+
+7
+00:00:20,450 --> 00:00:23,807
+and one prompt injection or runaway loop can drain it.
+
+8
+00:00:23,857 --> 00:00:27,845
+Or guard it with a server, which can be bypassed or compromised.
+
+9
+00:00:27,895 --> 00:00:30,810
+Allowance is a wallet built for agents instead.
+
+10
+00:00:32,110 --> 00:00:36,329
+Here is the site. The headline says it plainly: wallets for AI agents,
+
+11
+00:00:36,379 --> 00:00:38,159
+with rules the chain enforces.
+
+12
+00:00:38,209 --> 00:00:41,818
+Every payment an agent makes is checked by a Solana program,
+
+13
+00:00:41,868 --> 00:00:43,892
+not by a server you have to trust.
+
+14
+00:00:45,192 --> 00:00:49,342
+The infrastructure has four layers. A vault, owned by the program,
+
+15
+00:00:49,392 --> 00:00:51,378
+that only you can withdraw from.
+
+16
+00:00:51,428 --> 00:00:55,832
+A session key for each agent, with its own caps, merchants and expiry.
+
+17
+00:00:55,882 --> 00:00:59,650
+An MCP server, which is how Claude or Cursor use the wallet.
+
+18
+00:00:59,700 --> 00:01:02,767
+And the policy engine, the agent_pay instruction,
+
+19
+00:01:02,817 --> 00:01:05,758
+which checks every rule inside the transaction.
+
+20
+00:01:07,058 --> 00:01:10,914
+The landing page walks through the same story, with live motion:
+
+21
+00:01:10,964 --> 00:01:14,209
+the four layers, the 7 wallet tools an agent gets,
+
+22
+00:01:14,259 --> 00:01:17,321
+how a payment is checked, the real devnet demo run,
+
+23
+00:01:17,371 --> 00:01:19,152
+and what a refusal looks like.
+
+24
+00:01:20,452 --> 00:01:22,054
+Here is the full workflow.
+
+25
+00:01:22,104 --> 00:01:24,976
+You ask Claude to pay your friend 1 USDC.
+
+26
+00:01:25,026 --> 00:01:28,723
+Claude calls the transfer tool on the Allowance MCP server,
+
+27
+00:01:28,773 --> 00:01:29,613
+with a reason.
+
+28
+00:01:29,663 --> 00:01:32,408
+The server resolves friend from the session,
+
+29
+00:01:32,458 --> 00:01:35,965
+and signs an agent_pay transaction with the agent's key.
+
+30
+00:01:36,015 --> 00:01:37,553
+The program then decides.
+
+31
+00:01:37,603 --> 00:01:40,856
+A yes moves USDC from the vault to the recipient.
+
+32
+00:01:40,906 --> 00:01:43,778
+A no fails on-chain, with the rule that fired.
+
+33
+00:01:45,078 --> 00:01:48,292
+The Solana program is written in Rust with Anchor.
+
+34
+00:01:48,342 --> 00:01:50,054
+It has 12 instructions.
+
+35
+00:01:50,104 --> 00:01:54,623
+Ten are for the owner, signed with Phantom: create the vault, deposit,
+
+36
+00:01:54,673 --> 00:01:57,560
+withdraw, freeze, create and revoke sessions,
+
+37
+00:01:57,610 --> 00:01:59,583
+and approve or reject requests.
+
+38
+00:01:59,633 --> 00:02:04,022
+Only two can be signed by an agent: agent_pay, and request approval.
+
+39
+00:02:04,072 --> 00:02:08,395
+So a leaked agent key can never spend more than its session allows.
+
+40
+00:02:08,445 --> 00:02:12,964
+Agent pay runs 12 checks in order, and each one has its own error.
+
+41
+00:02:14,264 --> 00:02:16,130
+Here's what it's built with.
+
+42
+00:02:16,180 --> 00:02:18,936
+The program uses Anchor and SPL tokens,
+
+43
+00:02:18,986 --> 00:02:24,274
+and reads merchant reputation from the 8004 Agent Registry.
+
+44
+00:02:24,324 --> 00:02:28,654
+The agent side is a Model Context Protocol server in TypeScript.
+
+45
+00:02:28,704 --> 00:02:31,323
+Payments to APIs use the x402 standard,
+
+46
+00:02:31,373 --> 00:02:34,813
+with a facilitator and a demo paid API in the repo.
+
+47
+00:02:34,863 --> 00:02:38,440
+The dashboard is Next.js 16 with React 19,
+
+48
+00:02:38,490 --> 00:02:41,520
+TanStack Query and the Solana wallet adapter.
+
+49
+00:02:41,570 --> 00:02:44,257
+A shared client package holds the IDL,
+
+50
+00:02:44,307 --> 00:02:46,926
+instruction builders and PDA helpers.
+
+51
+00:02:48,226 --> 00:02:52,740
+Now the app itself. Connect Phantom, or view the demo vault read-only,
+
+52
+00:02:52,790 --> 00:02:53,653
+as we do here.
+
+53
+00:02:53,703 --> 00:02:57,304
+The overview shows your agents' wallet: active sessions,
+
+54
+00:02:57,354 --> 00:03:01,281
+today's spending, recent transactions, and the vault balance.
+
+55
+00:03:01,331 --> 00:03:04,736
+You fund it from Phantom, or by scanning the QR code.
+
+56
+00:03:06,036 --> 00:03:10,311
+The dashboard has 7 pages, one for each part of the wallet:
+
+57
+00:03:10,361 --> 00:03:13,880
+overview, vault, agent sessions, contacts, activity,
+
+58
+00:03:13,930 --> 00:03:15,528
+approvals and merchants.
+
+59
+00:03:15,578 --> 00:03:19,990
+A sliding indicator follows you between tabs, each page eases in,
+
+60
+00:03:20,040 --> 00:03:23,765
+and everything you see is read straight from the chain,
+
+61
+00:03:23,815 --> 00:03:25,138
+not from a database.
+
+62
+00:03:26,438 --> 00:03:30,713
+The vault page is where you withdraw, which works even while frozen,
+
+63
+00:03:30,763 --> 00:03:32,749
+and where the kill switch lives.
+
+64
+00:03:32,799 --> 00:03:36,756
+Freeze stops every payment from every agent, on-chain, at once.
+
+65
+00:03:38,056 --> 00:03:41,104
+To give an agent access, you issue it a session.
+
+66
+00:03:41,154 --> 00:03:43,493
+The MCP server prints its public key.
+
+67
+00:03:43,543 --> 00:03:47,366
+Paste it in, name the session, and choose how long it lasts.
+
+68
+00:03:48,666 --> 00:03:50,247
+Then set the limits: here,
+
+69
+00:03:50,297 --> 00:03:53,571
+at most 0.05 USDC per payment and 2 USDC a day,
+
+70
+00:03:53,621 --> 00:03:55,767
+with listed merchants and contacts,
+
+71
+00:03:55,817 --> 00:03:58,903
+and a reputation floor of 70 for anyone else.
+
+72
+00:03:58,953 --> 00:04:02,479
+The panel on the right restates the rules in plain words.
+
+73
+00:04:02,529 --> 00:04:05,176
+Sign with Phantom, and the session is live.
+
+74
+00:04:06,476 --> 00:04:11,266
+Agent sessions lists every agent key with its status, today's spending,
+
+75
+00:04:11,316 --> 00:04:12,834
+its cap and its expiry.
+
+76
+00:04:14,134 --> 00:04:17,815
+Open one to see its meters against each cap: the daily budget,
+
+77
+00:04:17,865 --> 00:04:21,847
+each merchant's own cap, and the shared cap for unlisted merchants.
+
+78
+00:04:21,897 --> 00:04:26,060
+You can revoke any single agent from here without touching the others.
+
+79
+00:04:27,360 --> 00:04:32,221
+Connecting an agent takes one config block, in Claude Desktop or Cursor.
+
+80
+00:04:32,271 --> 00:04:36,791
+Point it at the MCP server, your Phantom address and the agent key.
+
+81
+00:04:36,841 --> 00:04:41,360
+The agent then gets 7 tools: get allowance, transfer, pay x402,
+
+82
+00:04:41,410 --> 00:04:45,862
+request approval, check approval, check merchant, and get history.
+
+83
+00:04:47,162 --> 00:04:48,676
+And then you just talk to it.
+
+84
+00:04:48,726 --> 00:04:52,075
+Ask what your allowance is, and Claude reads it from the chain.
+
+85
+00:04:52,125 --> 00:04:55,150
+Ask for something over the cap, and the chain refuses it.
+
+86
+00:04:55,200 --> 00:04:57,092
+Claude tells you exactly which rule,
+
+87
+00:04:57,142 --> 00:04:59,088
+and can ask you for approval instead.
+
+88
+00:05:00,388 --> 00:05:02,151
+Paid APIs work over x402.
+
+89
+00:05:02,201 --> 00:05:06,504
+The API answers 402, payment required, with a price.
+
+90
+00:05:06,554 --> 00:05:10,494
+The MCP server builds agent_pay for exactly that price.
+
+91
+00:05:10,544 --> 00:05:13,975
+A facilitator verifies every rule by simulation,
+
+92
+00:05:14,025 --> 00:05:16,950
+co-signs as the fee payer and submits it.
+
+93
+00:05:17,000 --> 00:05:20,214
+USDC moves from the vault to the merchant,
+
+94
+00:05:20,264 --> 00:05:22,535
+and the API returns the content.
+
+95
+00:05:22,585 --> 00:05:26,162
+If a rule fails, the refusal still lands on-chain.
+
+96
+00:05:27,462 --> 00:05:30,916
+Every result shows up in Activity: paid or refused,
+
+97
+00:05:30,966 --> 00:05:35,932
+with the agent's reason and a link to the transaction on Solana Explorer.
+
+98
+00:05:37,232 --> 00:05:40,744
+Refusals are highlighted in gold with the rule that fired:
+
+99
+00:05:40,794 --> 00:05:45,105
+over the per-request cap, low reputation, a missing reputation account,
+
+100
+00:05:45,155 --> 00:05:47,070
+or a payment tried while frozen.
+
+101
+00:05:48,370 --> 00:05:51,682
+When an agent needs more than its cap allows, it asks.
+
+102
+00:05:51,732 --> 00:05:54,173
+The request waits on the Approvals page,
+
+103
+00:05:54,223 --> 00:05:57,659
+and you approve or reject it with one Phantom signature.
+
+104
+00:05:57,709 --> 00:06:01,208
+An approval pays once, for that merchant and that amount.
+
+105
+00:06:02,508 --> 00:06:04,837
+Merchants shows who your agents may pay,
+
+106
+00:06:04,887 --> 00:06:07,156
+with today's spending against each cap,
+
+107
+00:06:07,206 --> 00:06:10,426
+and each merchant's reputation from the Agent Registry.
+
+108
+00:06:11,726 --> 00:06:14,016
+Contacts lets agents pay people by name.
+
+109
+00:06:14,066 --> 00:06:17,700
+You can test how a name resolves before the agent ever uses it,
+
+110
+00:06:17,750 --> 00:06:19,572
+and it never guesses an address.
+
+111
+00:06:20,872 --> 00:06:24,637
+The How it works page documents the system: the pieces,
+
+112
+00:06:24,687 --> 00:06:28,245
+every rule agent_pay checks in order, the x402 flow,
+
+113
+00:06:28,295 --> 00:06:30,326
+and exactly who can sign what.
+
+114
+00:06:31,626 --> 00:06:33,025
+Every rule is tested.
+
+115
+00:06:33,075 --> 00:06:37,440
+30 LiteSVM tests run against the compiled program in Docker,
+
+116
+00:06:37,490 --> 00:06:41,441
+covering caps, reputation, freezing, expiry and approvals.
+
+117
+00:06:41,491 --> 00:06:44,269
+The program is deployed on Solana devnet,
+
+118
+00:06:44,319 --> 00:06:46,408
+and the site deploys on Vercel.
+
+119
+00:06:47,708 --> 00:06:52,264
+That's Allowance. Wallets for AI agents, with rules the chain enforces.
+
+120
+00:06:52,314 --> 00:06:56,869
+Even if the AI or a server were compromised, the program still says no.
+
+121
+00:06:56,919 --> 00:06:59,010
+It's live on Solana devnet today.

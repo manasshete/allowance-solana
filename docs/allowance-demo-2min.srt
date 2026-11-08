@@ -1,0 +1,139 @@
+1
+00:00:00,450 --> 00:00:03,823
+Allowance is agentic wallet infrastructure on Solana.
+
+2
+00:00:03,873 --> 00:00:08,344
+Every AI agent gets its own wallet key, with rules the chain enforces.
+
+3
+00:00:09,644 --> 00:00:12,255
+Handing an agent your private key is risky,
+
+4
+00:00:12,305 --> 00:00:14,731
+and a server-side guard can be bypassed.
+
+5
+00:00:14,781 --> 00:00:18,258
+Allowance puts the rules inside a Solana program instead.
+
+6
+00:00:19,558 --> 00:00:20,770
+It has four layers.
+
+7
+00:00:20,820 --> 00:00:23,095
+A vault only you can withdraw from.
+
+8
+00:00:23,145 --> 00:00:27,013
+A session key for each agent, with its own caps and expiry.
+
+9
+00:00:27,063 --> 00:00:30,600
+An MCP server, so Claude or Cursor can use the wallet.
+
+10
+00:00:30,650 --> 00:00:33,788
+And agent_pay, which checks every rule on-chain.
+
+11
+00:00:35,088 --> 00:00:37,065
+Ask Claude to pay your friend.
+
+12
+00:00:37,115 --> 00:00:38,889
+It calls the transfer tool,
+
+13
+00:00:38,939 --> 00:00:42,402
+the MCP server signs agent_pay with the agent's key,
+
+14
+00:00:42,452 --> 00:00:45,442
+and the program decides. A yes moves USDC.
+
+15
+00:00:45,492 --> 00:00:48,550
+A no fails on-chain, with the rule that fired.
+
+16
+00:00:49,850 --> 00:00:54,311
+In the dashboard you issue an agent a session: 0.05 USDC per payment,
+
+17
+00:00:54,361 --> 00:00:56,503
+2 USDC a day, named contacts,
+
+18
+00:00:56,553 --> 00:00:59,145
+and a reputation floor for everyone else.
+
+19
+00:00:59,195 --> 00:01:01,272
+Sign with Phantom, and it's live.
+
+20
+00:01:02,572 --> 00:01:05,798
+The dashboard has a page for each part of the wallet:
+
+21
+00:01:05,848 --> 00:01:09,877
+the vault and its kill switch, agent sessions, contacts, activity,
+
+22
+00:01:09,927 --> 00:01:11,360
+approvals and merchants.
+
+23
+00:01:11,410 --> 00:01:14,018
+Everything is read straight from the chain.
+
+24
+00:01:15,318 --> 00:01:18,302
+Then just ask. Over the cap? The chain refuses,
+
+25
+00:01:18,352 --> 00:01:20,884
+and Claude tells you exactly which rule.
+
+26
+00:01:22,184 --> 00:01:26,741
+Every payment and every refusal is on-chain, with the agent's reason.
+
+27
+00:01:26,791 --> 00:01:30,414
+Refusals show in gold, with the rule that stopped them.
+
+28
+00:01:31,714 --> 00:01:34,014
+Need more than the cap? The agent asks,
+
+29
+00:01:34,064 --> 00:01:37,930
+and you approve that one payment with a single Phantom signature.
+
+30
+00:01:37,980 --> 00:01:40,280
+One switch freezes every agent at once.
+
+31
+00:01:41,580 --> 00:01:46,373
+It's built with Rust and Anchor, a Model Context Protocol server,
+
+32
+00:01:46,422 --> 00:01:49,204
+x402 payments and a Next.js dashboard,
+
+33
+00:01:49,254 --> 00:01:52,258
+and it's covered by thirty LiteSVM tests.
+
+34
+00:01:53,558 --> 00:01:58,099
+Allowance. Wallets for AI agents, with rules the chain enforces.
+
+35
+00:01:58,149 --> 00:02:00,108
+Live on Solana devnet today.

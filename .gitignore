@@ -16,3 +16,19 @@ test-ledger/
 
 .vercel
 .env*
+
+# Media & presentations (large binary assets)
+*.mp4
+*.mov
+*.webm
+*.avi
+*.pptx
+*.ppt
+*.key
+docs/*.pdf
+
+# OS & editor junk
+.DS_Store
+Thumbs.db
+*.log
+.vscode/

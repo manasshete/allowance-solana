@@ -83,19 +83,15 @@ The owner keeps full control from Phantom. Each agent only ever gets a capped, r
 
 ---
 
-## 🎬 Product Demo & Walkthrough Video
+## 🎬 Product Demo & Walkthrough
 
-<div align="center">
-  <video src="https://raw.githubusercontent.com/manasshete/allowance-solana/main/docs/allowance-how-to-use.mp4" controls="controls" width="100%" style="max-width: 860px; border-radius: 14px; box-shadow: 0 18px 45px rgba(0,0,0,0.8); border: 1px solid #201b33;">
-    <p>Your browser does not support the video tag. <a href="./docs/allowance-how-to-use.mp4"><strong>Click here to download or watch the demo video directly (docs/allowance-how-to-use.mp4)</strong></a>.</p>
-  </video>
-  <br />
-  <p>
-    <em>Full walkthrough: funding the vault, issuing an agent session, resolving contacts by name, and conversational payments from Claude via MCP.</em>
-    <br />
-    <sub>📝 English subtitles included in <a href="./docs/allowance-how-to-use.srt"><code>docs/allowance-how-to-use.srt</code></a></sub>
-  </p>
-</div>
+A full end-to-end demonstration of Allowance in action:
+1. **Vault Funding**: Funding the AI agent vault directly from Phantom or via QR code.
+2. **Session Scoping**: Setting per-request caps, 24-hour daily rolling budgets, and listed contact allowances.
+3. **Conversational MCP Payments**: Claude Desktop asking for allowance details, resolving contacts by name, and executing autonomous Devnet payments.
+4. **On-Chain Policy Invariants**: Automatic rejection of over-budget transactions, and 1-click human-in-the-loop pending approval flow.
+
+> 📝 Subtitles and script transcripts are available in [`docs/allowance-showcase.srt`](./docs/allowance-showcase.srt) and [`docs/allowance-how-to-use.srt`](./docs/allowance-how-to-use.srt). Pitch materials are documented in [`docs/`](./docs/).
 
 ---
 
@@ -351,17 +347,12 @@ bash scripts/docker/e2e-devnet.sh
 │   ├── mcp/                    # Model Context Protocol Server (Claude & Cursor integration)
 │   ├── facilitator/            # HTTP 402 Facilitator service (ExactSvm verification & settlement)
 │   └── paid-api/               # Demo HTTP 402 paywalled API endpoints
-├── assets/                     # Minimalist SVG banners, architecture diagrams & screen mockups
-│   ├── allowance-banner.svg    # Minimalist project banner
-│   ├── architecture.svg        # System architecture flow diagram
-│   ├── screen-overview.svg     # Overview mockup (earlier 3D design)
-│   ├── screen-contacts.svg     # Contacts mockup (earlier 3D design)
-│   ├── screen-blueprint.svg    # New-session mockup (earlier design)
-│   ├── screen-approvals.svg    # Human-in-the-loop approvals mockup
-│   └── screen-history.svg      # Split-view transaction audit trail mockup
-├── docs/                       # Walkthrough media assets
-│   ├── allowance-how-to-use.mp4# Video demonstration (funding, radar, MCP Claude payment)
-│   └── allowance-how-to-use.srt# English video subtitles
+├── assets/                     # Minimalist SVG banner and architecture diagram
+│   ├── allowance-banner.svg    # Project banner
+│   └── architecture.svg        # System architecture flow diagram
+├── docs/                       # Walkthrough notes, pitch documentation & subtitles
+│   ├── allowance-showcase.srt  # Showcase video subtitles
+│   └── allowance-how-to-use.srt# Video walkthrough subtitles
 └── tests/                      # LiteSVM fast unit and integration tests
 ```
 
