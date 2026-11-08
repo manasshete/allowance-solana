@@ -16,6 +16,8 @@ export function humanError(e: unknown): string {
   if (rule) return `${ERROR_SENTENCES[rule]} (${rule})`;
   if (err?.logs?.some((l) => /already in use/.test(l)))
     return "That account already exists on-chain (for a session: this agent already has one, so revoke and close it or use a new agent key)";
+  if (err?.name === "WalletSendTransactionError" && /unexpected/i.test(err?.message ?? ""))
+    return "Phantom refused the transaction. Check Phantom is on Solana Devnet (Settings, Developer Settings, Testnet Mode) and try again";
   if (err?.name === "WalletSignTransactionError" || /reject/i.test(err?.message ?? "")) return "You declined in Phantom";
   return err?.message ?? String(e);
 }

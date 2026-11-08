@@ -251,6 +251,19 @@ export default function NewSession() {
                       Open the existing session
                     </Link>
                   )}
+                  {existing && (
+                    <button
+                      type="button"
+                      className="btn btn--text"
+                      style={{ width: "fit-content" }}
+                      onClick={() => {
+                        setManualAgent(true);
+                        generateKey();
+                      }}
+                    >
+                      Use a new agent key instead
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn btn--text"
