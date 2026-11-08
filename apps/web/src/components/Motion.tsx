@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
 
 /**
  * One small runtime for the whole site's motion, so pages (server or client) only add attributes:
@@ -125,15 +125,17 @@ export function SplitWords({
   return (
     <Tag className={`split ${className ?? ""}`.trim()} aria-label={text}>
       {words.map((w, i) => (
-        <span key={i} className="split__w" aria-hidden="true">
-          <span
-            className={`split__i${accent?.includes(w) ? " ramp-text" : ""}`}
-            style={{ "--i": i, "--d": `${delay}ms` } as CSSProperties}
-          >
-            {w}
+        <Fragment key={i}>
+          <span className="split__w" aria-hidden="true">
+            <span
+              className={`split__i${accent?.includes(w) ? " ramp-text" : ""}`}
+              style={{ "--i": i, "--d": `${delay}ms` } as CSSProperties}
+            >
+              {w}
+            </span>
           </span>
-          {i < words.length - 1 ? " " : ""}
-        </span>
+          {i < words.length - 1 ? " " : null}
+        </Fragment>
       ))}
     </Tag>
   );

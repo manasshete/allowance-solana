@@ -23,7 +23,7 @@ export function HeroVisual() {
           <circle className="hv__ring hv__ring--outer" cx="200" cy="200" r="186" />
           <circle className="hv__ring hv__ring--dash" cx="200" cy="200" r="160" />
           <circle className="hv__track" cx="200" cy="200" r="128" />
-          <circle className="hv__arc" cx="200" cy="200" r="128" pathLength="100" />
+          <circle className="hv__arc" cx="200" cy="200" r="128" />
           <circle className="hv__ring" cx="200" cy="200" r="96" />
         </svg>
         <div className="hv__core">
