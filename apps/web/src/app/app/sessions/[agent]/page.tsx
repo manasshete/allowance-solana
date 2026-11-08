@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useConnection } from "@solana/wallet-adapter-react";
@@ -9,6 +10,7 @@ import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { closeSessionIx, revokeSessionIx, sessionPda } from "@allowance/client";
 
 import { ActivityTable } from "@/components/ActivityTable";
+import { ConnectAgent } from "@/components/ConnectAgent";
 import { Addr, ConfirmInline, Meter, PageHead } from "@/components/Bits";
 import { EmptyState, ErrorState, Skeleton } from "@/components/States";
 import { merchantLabels, sessionStatus, timeLeft, usdc, when } from "@/lib/format";
@@ -28,6 +30,12 @@ export default function SessionDetail() {
   const names = useAgentNames();
   const revoke = useSend();
   const close = useSend();
+  // ?connect=1 after creating a session: open with the MCP setup in view.
+  const [fresh, setFresh] = useState<{ created: boolean; client?: string }>({ created: false });
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    setFresh({ created: q.get("connect") === "1", client: q.get("client") ?? undefined });
+  }, []);
 
   let agentKey: PublicKey | null = null;
   try {
@@ -66,6 +74,9 @@ export default function SessionDetail() {
           </>
         }
       />
+      {fresh.created && st === "active" && (
+        <ConnectAgent owner={owner.toBase58()} agent={agent} defaultClient={fresh.client} justCreated />
+      )}
       <div className="grid-2">
         <div className="col">
           <div className="well">
@@ -135,6 +146,7 @@ export default function SessionDetail() {
               />
             )}
           </div>
+          {!fresh.created && !readOnly && st === "active" && <ConnectAgent owner={owner.toBase58()} agent={agent} />}
         </div>
 
         <section className="board" aria-labelledby="s-act">

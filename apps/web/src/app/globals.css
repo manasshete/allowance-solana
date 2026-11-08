@@ -840,3 +840,14 @@ input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--color-danger); }
 .hero h1 { max-width: none; font-size: clamp(2.75rem, 4.6vw, 4.25rem); }
 @media (max-width: 60rem) { .fund-layout { grid-template-columns: minmax(0, 1fr) !important; }
 }
+
+/* ---------- connect an AI client (MCP config) ---------- */
+.mcp-connect { gap: var(--space-md); margin-block-end: var(--space-lg); }
+.mcp-steps { margin: 0; padding-inline-start: 1.25em; display: grid; gap: var(--space-xs); font-size: var(--text-sm); color: var(--color-ink-2); }
+.mcp-steps code, .mcp-connect .help code, .key-once code { color: var(--color-ink); overflow-wrap: anywhere; }
+.mcp-tabs { display: flex; gap: var(--space-2xs); flex-wrap: wrap; }
+.mcp-tabs .tab { border: 0; cursor: pointer; background: transparent; font: inherit; font-size: var(--text-sm); }
+.mcp-code { display: grid; gap: var(--space-2xs); }
+.mcp-code__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); }
+.mcp-code .logs { white-space: pre; overflow-wrap: normal; color: var(--color-ink); max-height: 26rem; }
+.key-once { display: grid; gap: var(--space-xs); padding: var(--space-md); border-radius: var(--radius-card); background: var(--color-danger-wash); box-shadow: inset 0 0 0 1px var(--color-danger); font-size: var(--text-sm); }

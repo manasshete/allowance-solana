@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 
 import { createSessionIx, MAX_MERCHANTS, parseUsdc, toBN } from "@allowance/client";
 
 
 import { Card3D } from "@/components/Card3D";
 import { saveAgentName } from "@/lib/names";
-import { useOwner, useProgram } from "@/lib/hooks";
+import { useOwner, useProgram, useSessions } from "@/lib/hooks";
 import { useSend } from "@/lib/tx";
 
 type Row = { address: string; label: string; cap: string };
@@ -30,6 +30,7 @@ export default function NewSession() {
   const program = useProgram();
   const router = useRouter();
   const send = useSend();
+  const sessions = useSessions();
 
   const [aiClient, setAiClient] = useState("Claude");
   const [name, setName] = useState("");
@@ -37,6 +38,26 @@ export default function NewSession() {
   // The local MCP agent's public key, filled in for the owner. Manual entry only as a fallback.
   const [localAgent, setLocalAgent] = useState<string | null>(null);
   const [manualAgent, setManualAgent] = useState(false);
+  // A key made in this tab for hosted use. Held in memory only, offered once as a download, never stored or sent.
+  const [generated, setGenerated] = useState<Keypair | null>(null);
+  const [keySaved, setKeySaved] = useState(false);
+  function generateKey() {
+    const kp = Keypair.generate();
+    setGenerated(kp);
+    setKeySaved(false);
+    setAgent(kp.publicKey.toBase58());
+  }
+  function downloadKey() {
+    if (!generated) return;
+    const blob = new Blob([JSON.stringify(Array.from(generated.secretKey))], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "agent.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    setKeySaved(true);
+  }
   useEffect(() => {
     fetch("/api/agent")
       .then((r) => (r.ok ? r.json() : { agent: null }))
@@ -62,7 +83,11 @@ export default function NewSession() {
   const [tried, setTried] = useState(false);
 
   const errors: Record<string, string> = {};
-  if (!isKey(agent)) errors.agent = "Paste the agent public key printed by the MCP server";
+  if (!isKey(agent)) errors.agent = "Paste the agent public key printed by the MCP server, or generate one";
+  else if (sessions.data?.some((x) => x.account.agent.toBase58() === agent.trim()))
+    errors.agent = "This agent already has a session on your vault. Open it, or revoke and close it first, or use a new agent key.";
+  else if (generated && generated.publicKey.toBase58() === agent.trim() && !keySaved)
+    errors.agent = "Download agent.json first. Without it the agent can't sign and this session is unusable.";
   if (!isAmount(perTxMax)) errors.perTxMax = "Valid number required";
   if (!isAmount(dailyBudget)) errors.dailyBudget = "Valid number required";
   if (!errors.perTxMax && !errors.dailyBudget && parseUsdc(perTxMax) > parseUsdc(dailyBudget))
@@ -78,7 +103,8 @@ export default function NewSession() {
     else if (!isAmount(r.cap) || parseUsdc(r.cap) === 0n) errors[`m${i}`] = "Cap must be above zero";
   });
 
-  const show = (k: string) => (tried ? errors[k] : undefined);
+  const existing = isKey(agent) ? sessions.data?.find((x) => x.account.agent.toBase58() === agent.trim()) : undefined;
+  const show = (k: string) => (tried || (k === "agent" && existing) ? errors[k] : undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -125,7 +151,8 @@ export default function NewSession() {
         build: async () => ixs,
       });
       saveAgentName(agentKey.toBase58(), name || aiClient);
-      router.push(`/app/sessions/${agentKey.toBase58()}`);
+      setGenerated(null);
+      router.push(`/app/sessions/${agentKey.toBase58()}?connect=1&client=${encodeURIComponent(aiClient)}`);
     } catch {
       /* handled by useSend */
     }
@@ -176,6 +203,23 @@ export default function NewSession() {
                     onChange={(e) => setAgent(e.target.value)}
                   />
                   {show("agent") && <small className="help help--error">{show("agent")}</small>}
+                  {!generated && (
+                    <button type="button" className="btn btn--text" style={{ width: "fit-content" }} onClick={generateKey}>
+                      No agent yet? Generate a key in this browser
+                    </button>
+                  )}
+                  {generated && generated.publicKey.toBase58() === agent.trim() && (
+                    <div className="key-once" role="alert">
+                      <strong>Save this agent key now. It is shown once.</strong>
+                      <span>
+                        It was made in this tab and is not stored or sent anywhere. Anyone with the file can spend within this
+                        session&rsquo;s limits, so keep it private and put it in your repo at <code>keys/agent.json</code>.
+                      </span>
+                      <button type="button" className="btn btn--primary" style={{ width: "fit-content" }} onClick={downloadKey}>
+                        {keySaved ? "Saved. Download again" : "Download agent.json"}
+                      </button>
+                    </div>
+                  )}
                   {localAgent && (
                     <button
                       type="button"
@@ -197,7 +241,29 @@ export default function NewSession() {
                       ? "Agent: set up automatically for the MCP server on this computer."
                       : "Finding this computer's agent…"}
                   </span>
-                  {show("agent") && <small className="help help--error">Still loading the agent, try again in a moment</small>}
+                  {show("agent") && (
+                    <small className="help help--error">
+                      {existing ? show("agent") : "Still loading the agent, try again in a moment"}
+                    </small>
+                  )}
+                  {existing && (
+                    <Link className="btn btn--text" style={{ width: "fit-content" }} href={`/app/sessions/${agent.trim()}`}>
+                      Open the existing session
+                    </Link>
+                  )}
+                  {existing && (
+                    <button
+                      type="button"
+                      className="btn btn--text"
+                      style={{ width: "fit-content" }}
+                      onClick={() => {
+                        setManualAgent(true);
+                        generateKey();
+                      }}
+                    >
+                      Use a new agent key instead
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn btn--text"
