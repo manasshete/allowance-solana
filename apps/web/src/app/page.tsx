@@ -1,7 +1,8 @@
 import Link from "next/link";
 
-import { Card3D } from "@/components/Card3D";
 import { Footer } from "@/components/Footer";
+import { HeroVisual } from "@/components/HeroVisual";
+import { CountUp, Marquee, SplitWords } from "@/components/Motion";
 import { TopBar } from "@/components/TopBar";
 import { DEMO_OWNER } from "@/lib/config";
 
@@ -14,7 +15,7 @@ const DEMO_RUN = [
   ["Try while frozen", "0.01", "Refused", "Frozen"],
 ] as const;
 
-/** The three things that happen to every payment, in order (the facts the 3D pipeline cards carried). */
+/** The three things that happen to every payment, in order. */
 const FLOW = [
   ["Your agent asks to pay", "Claude, Cursor or any MCP client calls a paid x402 API, or pays a contact, and gives a reason."],
   ["The program checks the session", "agent_pay checks the caps, the expiry, the merchant, its reputation and the freeze switch."],
@@ -28,70 +29,100 @@ const REFUSALS = [
   ["Frozen", "You hit Freeze all. Every session stops at once."],
 ] as const;
 
+const CODES = [
+  "Frozen",
+  "Revoked",
+  "Expired",
+  "OverRequestCap",
+  "OverDailyCap",
+  "OverMerchantCap",
+  "NotListed",
+  "LowReputation",
+  "OverOtherCap",
+  "ReasonMissing",
+  "BadReputationAccount",
+  "ConstraintAssociated",
+];
+
+const STATS = [
+  { to: 12, label: "rules checked on every payment", suffix: "" },
+  { to: 1, label: "switch freezes every session", suffix: "" },
+  { to: 0, label: "servers hold your keys", suffix: "" },
+  { to: 100, label: "of the rules live on-chain", suffix: "%" },
+] as const;
+
 export default function Landing() {
   return (
     <>
       <TopBar />
-      <main className="container">
-        <section className="hero hero--split">
-          <div className="hero__copy">
-            <h1>Give your agent a budget the chain enforces</h1>
-            <p className="lead">Caps, merchants and a kill switch live in a Solana program, not on a server.</p>
-            <div className="hero__actions">
-              <Link className="btn btn--primary" href="/app">
-                Launch app
-              </Link>
-              <Link className="btn btn--ghost" href="/how-it-works">
-                How it works
-              </Link>
+      <main id="main">
+        <section className="hero2">
+          <div className="container hero2__inner">
+            <div className="hero2__copy">
+              <span className="eyebrow enter" style={{ "--d": "0ms" } as React.CSSProperties}>
+                <span className="live-dot" aria-hidden="true" /> A spending firewall for AI agents
+              </span>
+              <SplitWords
+                className="hero2__title"
+                text="Give your agent a budget the chain enforces"
+                accent={["budget", "chain"]}
+                delay={120}
+              />
+              <p className="hero2__lead enter" style={{ "--d": "620ms" } as React.CSSProperties}>
+                Caps, merchants and a kill switch live in a Solana program, not on a server. Your agent pays over x402; the
+                program decides.
+              </p>
+              <div className="hero__actions enter" style={{ "--d": "760ms" } as React.CSSProperties}>
+                <Link className="btn btn--primary btn--lg btn--glow" href="/app">
+                  Launch app <span className="btn__arrow" aria-hidden="true">→</span>
+                </Link>
+                <Link className="btn btn--ghost btn--lg" href={`/app?view=${DEMO_OWNER}`}>
+                  View the demo vault
+                </Link>
+              </div>
+            </div>
+            <div className="hero2__visual enter" style={{ "--d": "300ms" } as React.CSSProperties}>
+              <HeroVisual />
             </div>
           </div>
-
-          <Card3D className="hero__board-wrap" intensity={12}>
-            <figure className="board hero__board" data-ui>
-              <div className="board__head">
-                <div>
-                  <h2>What the chain said</h2>
-                  <p className="board__sub">Five agent payments from the devnet demo run, newest last.</p>
-                </div>
-              </div>
-              <table className="feed">
-                <thead>
-                  <tr>
-                    <th scope="col">Payment</th>
-                    <th scope="col" className="r">
-                      USDC
-                    </th>
-                    <th scope="col">Result</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {DEMO_RUN.map(([reason, amount, result, rule]) => (
-                    <tr key={reason + rule} className={result === "Refused" ? "is-refused" : ""}>
-                      <td data-label="Payment">{reason}</td>
-                      <td className="num r figure" data-label="USDC">
-                        {amount}
-                      </td>
-                      <td data-label="Result">
-                        <strong>{result}</strong>
-                        {rule && <span className="rule">{rule}</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <figcaption className="board__sub">
-                <Link href={`/app?view=${DEMO_OWNER}`}>Open the demo vault read-only</Link>
-              </figcaption>
-            </figure>
-          </Card3D>
+          <a className="scroll-cue" href="#how" aria-label="Scroll to how a payment is checked">
+            <span />
+          </a>
         </section>
 
-        <section className="section" aria-labelledby="pay-h">
-          <h2 id="pay-h">How a payment is checked</h2>
-          <ol className="flow">
-            {FLOW.map(([title, text]) => (
-              <li key={title}>
+        <div className="band" aria-label="Rules that can refuse a payment">
+          <Marquee speed={48}>
+            {CODES.map((c) => (
+              <span key={c} className="band__item">
+                <code>{c}</code>
+              </span>
+            ))}
+          </Marquee>
+        </div>
+
+        <section className="container stats-band" aria-label="Allowance in numbers">
+          <dl data-stagger>
+            {STATS.map((s) => (
+              <div key={s.label} className="bigstat spot">
+                <dt>{s.label}</dt>
+                <dd>
+                  <CountUp to={s.to} suffix={s.suffix} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section id="how" className="container section2" aria-labelledby="pay-h">
+          <header className="section2__head" data-reveal>
+            <span className="eyebrow">How it works</span>
+            <h2 id="pay-h">How a payment is checked</h2>
+            <p className="muted">Three steps, every time, in one Solana transaction. Nothing to trust in between.</p>
+          </header>
+          <ol className="flow2" data-stagger>
+            {FLOW.map(([title, text], i) => (
+              <li key={title} className="flow2__step spot">
+                <span className="flow2__n num">0{i + 1}</span>
                 <h3>{title}</h3>
                 <p>{text}</p>
               </li>
@@ -99,17 +130,75 @@ export default function Landing() {
           </ol>
         </section>
 
-        <section className="section" aria-labelledby="no-h">
-          <h2 id="no-h">What a refusal looks like</h2>
-          <div className="refusals">
+        <section className="container section2 section2--split" aria-labelledby="board-h">
+          <header className="section2__head" data-reveal>
+            <span className="eyebrow">Live on devnet</span>
+            <h2 id="board-h">What the chain said</h2>
+            <p className="muted">
+              Five agent payments from the devnet demo run, newest last. Every refusal is a real failed transaction that names
+              its rule.
+            </p>
+            <Link className="btn btn--ghost" href={`/app?view=${DEMO_OWNER}`}>
+              Open the demo vault read-only <span className="btn__arrow" aria-hidden="true">→</span>
+            </Link>
+          </header>
+          <figure className="board board--glass spot" data-reveal="scale">
+            <table className="feed">
+              <thead>
+                <tr>
+                  <th scope="col">Payment</th>
+                  <th scope="col" className="r">
+                    USDC
+                  </th>
+                  <th scope="col">Result</th>
+                </tr>
+              </thead>
+              <tbody data-stagger>
+                {DEMO_RUN.map(([reason, amount, result, rule]) => (
+                  <tr key={reason + rule} className={result === "Refused" ? "is-refused" : ""}>
+                    <td data-label="Payment">{reason}</td>
+                    <td className="num r figure" data-label="USDC">
+                      {amount}
+                    </td>
+                    <td data-label="Result">
+                      <strong>{result}</strong>
+                      {rule && <span className="rule">{rule}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </figure>
+        </section>
+
+        <section id="refusals" className="container section2" aria-labelledby="no-h">
+          <header className="section2__head" data-reveal>
+            <span className="eyebrow eyebrow--gold">Refusals</span>
+            <h2 id="no-h">What a refusal looks like</h2>
+            <p className="muted">A no is never a timeout or a vague error. It is a rule with a name.</p>
+          </header>
+          <div className="refusals" data-stagger>
             {REFUSALS.map(([code, text]) => (
-              <Card3D key={code} intensity={14} glare={false}>
-                <div className="refusal">
-                  <code>{code}</code>
-                  <span>{text}</span>
-                </div>
-              </Card3D>
+              <div key={code} className="refusal">
+                <code>{code}</code>
+                <span>{text}</span>
+              </div>
             ))}
+          </div>
+        </section>
+
+        <section className="container cta" aria-labelledby="cta-h">
+          <div className="cta__panel spot" data-reveal="scale">
+            <h2 id="cta-h">Hand your agent a card with limits</h2>
+            <p className="muted">Create a vault, fund it, and give your agent a capped session in under a minute.</p>
+            <div className="hero__actions">
+              <Link className="btn btn--primary btn--lg btn--glow" href="/app">
+                Launch app <span className="btn__arrow" aria-hidden="true">→</span>
+              </Link>
+              <Link className="btn btn--ghost btn--lg" href="/how-it-works">
+                Read the rules
+              </Link>
+            </div>
           </div>
         </section>
       </main>

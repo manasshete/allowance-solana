@@ -1,0 +1,223 @@
+1
+00:00:00,500 --> 00:00:04,032
+This is Allowance, a spending firewall for AI agents on Solana.
+
+2
+00:00:04,082 --> 00:00:10,002
+In the next few minutes you'll see how to set it up, and what happens when your agent tries to overspend.
+
+3
+00:00:11,452 --> 00:00:14,148
+AI agents can now pay for APIs over x402.
+
+4
+00:00:14,198 --> 00:00:17,631
+But no company wants to hand a model an open wallet.
+
+5
+00:00:17,681 --> 00:00:24,530
+Allowance puts the budget inside a Solana program, so the chain itself says yes or no to every payment.
+
+6
+00:00:25,980 --> 00:00:28,451
+Here's the flow. Your agent asks to pay.
+
+7
+00:00:28,501 --> 00:00:34,188
+The program checks the session's caps, the merchant, its reputation, and the freeze switch.
+
+8
+00:00:34,238 --> 00:00:35,638
+Then the chain answers.
+
+9
+00:00:35,688 --> 00:00:38,726
+A yes moves USDC from your vault to the merchant.
+
+10
+00:00:38,776 --> 00:00:41,626
+A no lands on-chain, with the rule that fired.
+
+11
+00:00:43,076 --> 00:00:49,477
+The How it works page lists every rule the program checks, in order, and the error each one returns.
+
+12
+00:00:49,527 --> 00:00:52,122
+So a refusal always names the exact rule.
+
+13
+00:00:53,572 --> 00:00:55,689
+Click Launch app, and connect Phantom.
+
+14
+00:00:55,739 --> 00:00:58,199
+Here we're viewing the demo vault read-only.
+
+15
+00:00:58,249 --> 00:01:02,534
+The overview shows active sessions, today's spending, and the vault balance.
+
+16
+00:01:02,584 --> 00:01:04,416
+Your Phantom wallet stays sealed.
+
+17
+00:01:04,466 --> 00:01:07,154
+Agents can only spend what you put in the vault.
+
+18
+00:01:08,604 --> 00:01:13,106
+Fund the vault from the Vault page, or send USDC to the vault address.
+
+19
+00:01:13,156 --> 00:01:17,137
+Only your wallet can withdraw, even while the vault is frozen.
+
+20
+00:01:17,187 --> 00:01:18,958
+And this is the kill switch.
+
+21
+00:01:19,008 --> 00:01:23,314
+Freeze blocks every payment, from every session, on-chain, at once.
+
+22
+00:01:24,764 --> 00:01:27,161
+Next, create a session for your agent.
+
+23
+00:01:27,211 --> 00:01:31,283
+Start the MCP server once, and it prints the agent's public key.
+
+24
+00:01:31,333 --> 00:01:36,114
+Paste it here, give the session a name, and choose how many hours it lasts.
+
+25
+00:01:37,564 --> 00:01:38,811
+Now set the limits.
+
+26
+00:01:38,861 --> 00:01:47,273
+In the demo, that's at most 0.05 USDC per payment, 2 USDC a day, and any unlisted service needs a reputation of at least 70.
+
+27
+00:01:47,323 --> 00:01:51,163
+The panel on the right restates the rules in plain words.
+
+28
+00:01:51,213 --> 00:01:54,098
+Sign with Phantom, and the session is live.
+
+29
+00:01:55,548 --> 00:02:03,226
+The Sessions page lists every agent key, with its status, today's spending, its per-request cap, and when it expires.
+
+30
+00:02:04,676 --> 00:02:07,299
+Open one to see its progress against each cap:
+
+31
+00:02:07,349 --> 00:02:12,239
+the daily budget, each merchant's own cap, and the shared cap for unlisted merchants.
+
+32
+00:02:12,289 --> 00:02:14,970
+You can revoke a session from here at any time.
+
+33
+00:02:16,420 --> 00:02:18,412
+Then connect Claude or Cursor.
+
+34
+00:02:18,462 --> 00:02:24,811
+Add the Allowance MCP server to your config, with your Phantom address and the agent key path.
+
+35
+00:02:24,861 --> 00:02:31,346
+Claude gets tools to check its allowance, pay x402 APIs, pay contacts, and ask you for approval.
+
+36
+00:02:32,796 --> 00:02:33,583
+Now just ask.
+
+37
+00:02:33,633 --> 00:02:37,769
+When Claude calls a paid API, the program pays exactly the price.
+
+38
+00:02:37,819 --> 00:02:44,338
+When a request breaks a rule, the chain refuses it, and Claude tells you which rule, with the numbers.
+
+39
+00:02:45,788 --> 00:02:49,515
+Every result shows up in Activity, read straight from the chain.
+
+40
+00:02:49,565 --> 00:02:53,706
+Each payment carries the agent's reason, and a link to its transaction.
+
+41
+00:02:55,156 --> 00:02:58,334
+Here are the three rejections from the demo run.
+
+42
+00:02:58,384 --> 00:03:02,099
+A 0.50 USDC report, refused as over the per-request cap.
+
+43
+00:03:02,149 --> 00:03:05,798
+A poorly reviewed provider, refused for low reputation.
+
+44
+00:03:05,848 --> 00:03:10,370
+And a payment tried while the vault was frozen, refused with Frozen.
+
+45
+00:03:11,820 --> 00:03:15,419
+When a payment is over the cap, the agent can ask you instead.
+
+46
+00:03:15,469 --> 00:03:17,773
+The request waits on the Approvals page.
+
+47
+00:03:17,823 --> 00:03:21,186
+An approval works once, for that merchant and that amount.
+
+48
+00:03:21,236 --> 00:03:24,658
+Here, the same report was paid after the owner approved it.
+
+49
+00:03:26,108 --> 00:03:34,842
+Merchants shows who your agents may pay, either listed in a session or let through by the reputation gate, with today's spending against each cap.
+
+50
+00:03:36,292 --> 00:03:39,997
+And Contacts lets your agent pay people by name, like:
+
+51
+00:03:40,047 --> 00:03:44,865
+pay my friend 0.05. It only works for addresses listed in the session.
+
+52
+00:03:44,915 --> 00:03:47,090
+The program refuses anyone else.
+
+53
+00:03:48,540 --> 00:03:49,544
+That's Allowance:
+
+54
+00:03:49,594 --> 00:03:53,758
+the spending firewall that lets companies switch agents on for x402.
+
+55
+00:03:53,808 --> 00:03:58,469
+Even if the AI or the server were compromised, the chain enforces the rules.
+
+56
+00:03:58,519 --> 00:04:00,514
+It's live on Solana devnet today.

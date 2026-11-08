@@ -30,6 +30,22 @@ Instead of handing an AI agent an unconstrained private key, the owner funds a *
 
 ---
 
+## 🎬 Product Demo & Walkthrough
+
+<div align="center">
+  <video src="https://raw.githubusercontent.com/manasshete/allowance-solana/main/docs/allowance-how-to-use.mp4" controls="controls" width="100%" style="max-width: 850px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.7);">
+    <p>Your browser does not support the video tag. <a href="./docs/allowance-how-to-use.mp4"><strong>Click here to download or watch the demo video directly (docs/allowance-how-to-use.mp4)</strong></a>.</p>
+  </video>
+  <br />
+  <p>
+    <em>Full walkthrough: funding the AI jar, setting up session rules, resolving contacts with the 3D Radar, and autonomous conversational payments using Claude via MCP.</em>
+    <br />
+    <sub>📝 English subtitles available in <a href="./docs/allowance-how-to-use.srt"><code>docs/allowance-how-to-use.srt</code></a></sub>
+  </p>
+</div>
+
+---
+
 ## 🔮 Architecture
 
 <p align="center">

@@ -1,0 +1,13 @@
+# Upload only what the dashboard (apps/web) needs to build. Everything else, keys/ and .env above all, stays local.
+/*
+!package.json
+!package-lock.json
+!tsconfig.base.json
+!apps
+!packages
+**/node_modules
+**/.next
+**/.env*
+!**/.env.example
+**/keys
+**/*.keypair.json

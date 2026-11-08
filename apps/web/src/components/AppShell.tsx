@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 
@@ -64,7 +64,7 @@ function Gate({ children, onLeaveView }: { children: ReactNode; onLeaveView: () 
 
   if (!owner)
     return (
-      <main className="container page">
+      <main id="main" className="container page">
         <EmptyState
           title="Connect Phantom to manage your vault"
           action={
@@ -85,7 +85,7 @@ function Gate({ children, onLeaveView }: { children: ReactNode; onLeaveView: () 
     );
   if (readOnly && !vault.isLoading && !vault.data?.account)
     return (
-      <main className="container page">
+      <main id="main" className="container page">
         <EmptyState
           title="No vault for this address"
           action={
@@ -100,19 +100,19 @@ function Gate({ children, onLeaveView }: { children: ReactNode; onLeaveView: () 
     );
   if (vault.isLoading)
     return (
-      <main className="container page">
+      <main id="main" className="container page">
         <Skeleton rows={5} />
       </main>
     );
   if (vault.error)
     return (
-      <main className="container page">
+      <main id="main" className="container page">
         <ErrorState error={vault.error} retry={() => vault.refetch()} />
       </main>
     );
   if (!vault.data?.account)
     return (
-      <main className="container page">
+      <main id="main" className="container page">
         <CreateVault />
       </main>
     );
@@ -139,10 +139,27 @@ function Shell({
   const path = usePathname();
   const pendings = usePendings();
   const open = pendings.data?.filter((p) => pendingStatus(p.account) === "open").length ?? 0;
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    const place = () => {
+      const a = row.querySelector<HTMLElement>(".tab.is-active");
+      setInd(a ? { x: a.offsetLeft, w: a.offsetWidth } : null);
+      if (a && (a.offsetLeft < row.scrollLeft || a.offsetLeft + a.offsetWidth > row.scrollLeft + row.clientWidth))
+        row.scrollTo({ left: a.offsetLeft - 24, behavior: "smooth" });
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(row);
+    return () => ro.disconnect();
+  }, [path, open]);
   return (
     <>
       <nav className="tabs" aria-label="Dashboard">
-        <div className="container tabs__inner">
+        <div className="container tabs__inner" ref={rowRef}>
+          {ind && <span className="tabs__ind" aria-hidden="true" style={{ transform: `translateX(${ind.x}px)`, width: ind.w }} />}
           {TABS.map(([href, label]) => {
             const active = href === "/app" ? path === "/app" : path.startsWith(href);
             return (
@@ -173,7 +190,7 @@ function Shell({
         </div>
       )}
       {frozen && <FrozenBanner readOnly={!!readOnlyOwner} />}
-      <main className="container page">{children}</main>
+      <main id="main" key={path} className="container page page--enter">{children}</main>
     </>
   );
 }

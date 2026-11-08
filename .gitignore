@@ -13,3 +13,6 @@ keys/
 test-ledger/
 *.tsbuildinfo
 .claude/settings.local.json
+
+.vercel
+.env*

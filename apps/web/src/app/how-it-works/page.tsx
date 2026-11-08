@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { explorerAddress, PROGRAM_ID } from "@allowance/client";
 
 import { Footer } from "@/components/Footer";
+import { SplitWords } from "@/components/Motion";
 import { TopBar } from "@/components/TopBar";
 
 export const metadata: Metadata = {
@@ -35,11 +36,12 @@ export default function HowItWorks() {
   return (
     <>
       <TopBar />
-      <main className="container page">
-        <div className="pagehead">
+      <main id="main" className="container page page--public">
+        <div className="pagehead pagehead--hero">
           <div>
-            <h1>How it works</h1>
-            <p className="muted">
+            <span className="eyebrow enter">The program</span>
+            <SplitWords text="How it works" accent={["works"]} />
+            <p className="muted enter" style={{ "--d": "360ms" } as React.CSSProperties}>
               Program{" "}
               <a href={explorerAddress(PROGRAM_ID.toBase58())} target="_blank" rel="noreferrer">
                 {PROGRAM_ID.toBase58()}
@@ -49,7 +51,7 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        <section className="col" aria-labelledby="rules-h">
+        <section className="col well well--glass" data-reveal aria-labelledby="rules-h">
           <h2 id="rules-h">What agent_pay checks, in order</h2>
           <p className="muted">Each rule has its own error, so a refusal names the rule that fired.</p>
           <table className="table">
@@ -59,7 +61,7 @@ export default function HowItWorks() {
                 <th scope="col">Refused with</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-stagger>
               {RULES.map(([rule, code]) => (
                 <tr key={rule}>
                   <td data-label="Rule">{rule}</td>
@@ -72,7 +74,7 @@ export default function HowItWorks() {
           </table>
         </section>
 
-        <section className="col" aria-labelledby="flow-h">
+        <section className="col well well--glass" data-reveal aria-labelledby="flow-h">
           <h2 id="flow-h">A paid API call</h2>
           <pre className="logs">{`Claude -> MCP server -> GET paid API -> 402 (price, token, payTo, fee payer)
 MCP server builds agent_pay(price, reason) to payTo, signs as the agent
@@ -81,7 +83,7 @@ MCP server builds agent_pay(price, reason) to payTo, signs as the agent
             co-signs as fee payer, submits -> USDC moves vault -> merchant`}</pre>
         </section>
 
-        <section className="col" aria-labelledby="sign-h">
+        <section className="col well well--glass" data-reveal aria-labelledby="sign-h">
           <h2 id="sign-h">Who signs what</h2>
           <table className="table">
             <thead>
@@ -90,7 +92,7 @@ MCP server builds agent_pay(price, reason) to payTo, signs as the agent
                 <th scope="col">Can</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-stagger>
               {SIGNERS.map(([who, can]) => (
                 <tr key={who}>
                   <td data-label="Signer">
@@ -103,7 +105,7 @@ MCP server builds agent_pay(price, reason) to payTo, signs as the agent
           </table>
         </section>
 
-        <section className="col" aria-labelledby="limit-h">
+        <section className="col well well--glass" data-reveal aria-labelledby="limit-h">
           <h2 id="limit-h">Known limits</h2>
           <p>
             Only x402 facilitators that verify program payments (the @x402/svm smart-wallet mode, with Allowance allowed) can

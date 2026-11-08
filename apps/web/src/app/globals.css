@@ -20,10 +20,10 @@
   --tracking-display: -0.035em;
 
   /* colour: from solana.com's nd system (see brand spec) */
-  --color-ground: #000000;
-  --color-panel: #101010;
-  --color-panel-2: #161618;
-  --color-edge: #262626;
+  --color-ground: #05040a;
+  --color-panel: #0d0c15;
+  --color-panel-2: #15141f;
+  --color-edge: #26243a;
   --color-ink: #ffffff;
   --color-ink-2: #ababba;
   --color-ink-3: #757575;
@@ -33,22 +33,22 @@
   --color-cta: #ffffff;
   --color-on-cta: #000000;
   --color-cta-hover: rgb(255 255 255 / 0.9);
-  --color-purple: #9945ff;
-  --color-green: #14f195;
-  --color-lavender: #ca9ff5;
+  --color-purple: #7b61ff;
+  --color-green: #2ee6b6;
+  --color-lavender: #b9a8ff;
   --color-ok: #55e9ab;
   --color-refused: #ffc526;
   --color-on-refused: #000000;
   --color-danger: #f48252;
-  --color-focus: #ca9ff5;
+  --color-focus: #b9a8ff;
   --color-scrim: rgb(0 0 0 / 0.7);
   --color-scrim-soft: rgb(0 0 0 / 0.4);
   --color-danger-wash: rgb(244 130 82 / 0.12);
   --shadow-float: 0 24px 48px -24px rgb(0 0 0 / 0.9);
-  --color-panel-3: #0c0c0e;
+  --color-panel-3: #0a0912;
   --color-edge-2: #2e2e36;
-  --tint-green: rgb(20 241 149 / 0.12); --edge-green: rgb(20 241 149 / 0.3);
-  --tint-purple: rgb(153 69 255 / 0.12); --edge-purple: rgb(153 69 255 / 0.3);
+  --tint-green: rgb(46 230 182 / 0.12); --edge-green: rgb(46 230 182 / 0.3);
+  --tint-purple: rgb(123 97 255 / 0.12); --edge-purple: rgb(123 97 255 / 0.3);
   --tint-ok: rgb(85 233 171 / 0.12); --edge-ok: rgb(85 233 171 / 0.3);
   --tint-gold: rgb(255 197 38 / 0.12); --edge-gold: rgb(255 197 38 / 0.3);
   --ramp: linear-gradient(90deg, var(--color-purple), var(--color-green));
