@@ -14,7 +14,10 @@ export function Footer() {
             <LogoMark />
             <span>Allowance</span>
           </Link>
-          <p>An on-chain spending firewall for AI agents. The program enforces every rule; this site only reads and asks you to sign.</p>
+          <p>
+            Agentic wallet infrastructure on Solana: a program-owned vault, a session key per agent, MCP wallet tools and on-chain
+            spending rules. This site only reads and asks you to sign.
+          </p>
         </div>
         <nav className="foot__cols" aria-label="Footer">
           <div>
@@ -25,6 +28,7 @@ export function Footer() {
           </div>
           <div>
             <h2>Learn</h2>
+            <Link href="/#stack">Infrastructure</Link>
             <Link href="/how-it-works">How it works</Link>
             <Link href="/#refusals">Refusals</Link>
             <a href={explorerAddress(program)} target="_blank" rel="noreferrer">

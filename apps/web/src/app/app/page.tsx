@@ -67,7 +67,7 @@ export default function Overview() {
       <div className="pagehead">
         <div>
           <h1>Overview</h1>
-          <p className="muted">Your Phantom wallet stays sealed. Agents can only spend what is in this vault.</p>
+          <p className="muted">Your agents&apos; wallet. You own and fund this vault; each agent spends from it only through its own capped session key.</p>
         </div>
         <dl className="stats stats--inline">
           <div className="stat">

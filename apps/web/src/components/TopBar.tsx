@@ -16,7 +16,8 @@ const WalletMultiButton = dynamic(
 );
 
 const SITE_LINKS = [
-  ["/#how", "How a payment is checked"],
+  ["/#stack", "Infrastructure"],
+  ["/#how", "Payments"],
   ["/#refusals", "Refusals"],
   ["/how-it-works", "The rules"],
 ] as const;

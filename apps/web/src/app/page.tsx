@@ -15,6 +15,16 @@ const DEMO_RUN = [
   ["Try while frozen", "0.01", "Refused", "Frozen"],
 ] as const;
 
+/** The layers of the infrastructure, bottom to top. */
+const STACK = [
+  ["Vault", "A program-owned wallet", "One vault per owner, held by the Allowance program on Solana. Only your Phantom wallet can withdraw; agents never hold your keys."],
+  ["Session keys", "One key per agent", "Each agent gets its own session: per-request and daily caps, listed merchants, a reputation floor and an expiry. Revoke one without touching the rest."],
+  ["MCP server", "The agent's interface", "Claude, Cursor or any MCP client gets wallet tools: check its allowance, pay a person by name, pay an x402 API, ask you for approval."],
+  ["Policy engine", "Enforced on-chain", "agent_pay checks every rule inside the transaction. Over-cap requests wait for your approval, and one switch freezes every agent at once."],
+] as const;
+
+const TOOLS = ["get_allowance", "transfer", "pay_x402", "request_approval", "check_approval", "check_merchant", "get_history"];
+
 /** The three things that happen to every payment, in order. */
 const FLOW = [
   ["Your agent asks to pay", "Claude, Cursor or any MCP client calls a paid x402 API, or pays a contact, and gives a reason."],
@@ -45,10 +55,10 @@ const CODES = [
 ];
 
 const STATS = [
+  { to: 7, label: "wallet tools for any MCP agent", suffix: "" },
   { to: 12, label: "rules checked on every payment", suffix: "" },
-  { to: 1, label: "switch freezes every session", suffix: "" },
+  { to: 1, label: "switch freezes every agent", suffix: "" },
   { to: 0, label: "servers hold your keys", suffix: "" },
-  { to: 100, label: "of the rules live on-chain", suffix: "%" },
 ] as const;
 
 export default function Landing() {
@@ -60,17 +70,17 @@ export default function Landing() {
           <div className="container hero2__inner">
             <div className="hero2__copy">
               <span className="eyebrow enter" style={{ "--d": "0ms" } as React.CSSProperties}>
-                <span className="live-dot" aria-hidden="true" /> A spending firewall for AI agents
+                <span className="live-dot" aria-hidden="true" /> Agentic wallet infrastructure on Solana
               </span>
               <SplitWords
                 className="hero2__title"
-                text="Give your agent a budget the chain enforces"
-                accent={["budget", "chain"]}
+                text="Wallets for AI agents, with rules the chain enforces"
+                accent={["Wallets", "chain"]}
                 delay={120}
               />
               <p className="hero2__lead enter" style={{ "--d": "620ms" } as React.CSSProperties}>
-                Caps, merchants and a kill switch live in a Solana program, not on a server. Your agent pays over x402; the
-                program decides.
+                Allowance gives every agent its own spending key on a vault you control. Agents pay APIs over x402 and people by
+                name through MCP; caps, merchants, approvals and a kill switch are enforced by a Solana program, not a server.
               </p>
               <div className="hero__actions enter" style={{ "--d": "760ms" } as React.CSSProperties}>
                 <Link className="btn btn--primary btn--lg btn--glow" href="/app">
@@ -113,10 +123,43 @@ export default function Landing() {
           </dl>
         </section>
 
+        <section id="stack" className="container section2" aria-labelledby="stack-h">
+          <header className="section2__head" data-reveal>
+            <span className="eyebrow">The infrastructure</span>
+            <h2 id="stack-h">Everything an agent needs to hold and spend money</h2>
+            <p className="muted">
+              A wallet, a key per agent, a tool interface and a policy engine. You stay the owner; the agent only ever gets a
+              capped session.
+            </p>
+          </header>
+          <ol className="stack" data-stagger>
+            {STACK.map(([name, tag, text], i) => (
+              <li key={name} className="stack__layer spot">
+                <span className="stack__n num">0{i + 1}</span>
+                <div className="stack__copy">
+                  <h3>{name}</h3>
+                  <span className="stack__tag">{tag}</span>
+                </div>
+                <p>{text}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="tools" data-reveal>
+            <span className="tools__label">MCP tools your agent gets</span>
+            <ul data-stagger>
+              {TOOLS.map((t) => (
+                <li key={t}>
+                  <code>{t}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section id="how" className="container section2" aria-labelledby="pay-h">
           <header className="section2__head" data-reveal>
             <span className="eyebrow">How it works</span>
-            <h2 id="pay-h">How a payment is checked</h2>
+            <h2 id="pay-h">How an agent payment is checked</h2>
             <p className="muted">Three steps, every time, in one Solana transaction. Nothing to trust in between.</p>
           </header>
           <ol className="flow2" data-stagger>
@@ -189,8 +232,8 @@ export default function Landing() {
 
         <section className="container cta" aria-labelledby="cta-h">
           <div className="cta__panel spot" data-reveal="scale">
-            <h2 id="cta-h">Hand your agent a card with limits</h2>
-            <p className="muted">Create a vault, fund it, and give your agent a capped session in under a minute.</p>
+            <h2 id="cta-h">Give your agent a wallet it can&apos;t misuse</h2>
+            <p className="muted">Create a vault, fund it, and issue your agent a capped session key in under a minute.</p>
             <div className="hero__actions">
               <Link className="btn btn--primary btn--lg btn--glow" href="/app">
                 Launch app <span className="btn__arrow" aria-hidden="true">→</span>
