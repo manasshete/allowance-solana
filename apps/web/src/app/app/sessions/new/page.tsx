@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -34,6 +34,20 @@ export default function NewSession() {
   const [aiClient, setAiClient] = useState("Claude");
   const [name, setName] = useState("");
   const [agent, setAgent] = useState("");
+  // The local MCP agent's public key, filled in for the owner. Manual entry only as a fallback.
+  const [localAgent, setLocalAgent] = useState<string | null>(null);
+  const [manualAgent, setManualAgent] = useState(false);
+  useEffect(() => {
+    fetch("/api/agent")
+      .then((r) => (r.ok ? r.json() : { agent: null }))
+      .then((j: { agent: string | null }) => {
+        if (j.agent) {
+          setLocalAgent(j.agent);
+          setAgent((a) => a || j.agent!);
+        } else setManualAgent(true);
+      })
+      .catch(() => setManualAgent(true));
+  }, []);
   const [durationHours, setDurationHours] = useState("24");
   const [dailyBudget, setDailyBudget] = useState("100");
   const [perTxMax, setPerTxMax] = useState("20");
@@ -148,20 +162,52 @@ export default function NewSession() {
                 </select>
               </div>
 
-              <div className="field">
-                <label htmlFor="s-agent">Agent public key</label>
-                <input
-                  id="s-agent"
-                  type="text"
-                  spellCheck={false}
-                  autoComplete="off"
-                  placeholder="Printed by MCP server (e.g. 8kQb...)"
-                  value={agent}
-                  aria-invalid={!!show("agent")}
-                  onChange={(e) => setAgent(e.target.value)}
-                />
-                {show("agent") && <small className="help help--error">{show("agent")}</small>}
-              </div>
+              {manualAgent ? (
+                <div className="field">
+                  <label htmlFor="s-agent">Agent public key</label>
+                  <input
+                    id="s-agent"
+                    type="text"
+                    spellCheck={false}
+                    autoComplete="off"
+                    placeholder="Printed by MCP server (e.g. 8kQb...)"
+                    value={agent}
+                    aria-invalid={!!show("agent")}
+                    onChange={(e) => setAgent(e.target.value)}
+                  />
+                  {show("agent") && <small className="help help--error">{show("agent")}</small>}
+                  {localAgent && (
+                    <button
+                      type="button"
+                      className="btn btn--text"
+                      style={{ width: "fit-content" }}
+                      onClick={() => {
+                        setAgent(localAgent);
+                        setManualAgent(false);
+                      }}
+                    >
+                      Use this computer&rsquo;s agent
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="field">
+                  <span className="help">
+                    {localAgent
+                      ? "Agent: set up automatically for the MCP server on this computer."
+                      : "Finding this computer's agent…"}
+                  </span>
+                  {show("agent") && <small className="help help--error">Still loading the agent, try again in a moment</small>}
+                  <button
+                    type="button"
+                    className="btn btn--text"
+                    style={{ width: "fit-content" }}
+                    onClick={() => setManualAgent(true)}
+                  >
+                    Use a different agent
+                  </button>
+                </div>
+              )}
 
               <div className="field">
                 <label htmlFor="s-label">Name (optional, kept in this browser)</label>

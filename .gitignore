@@ -11,4 +11,5 @@ keys/
 .hallmark/
 .taste-skill/
 test-ledger/
+*.tsbuildinfo
 .claude/settings.local.json
