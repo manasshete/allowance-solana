@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 310" width="100%" height="100%">
+  <defs>
+    <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9945FF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#14F195" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    .bg-main { fill: #07060b; stroke: #191526; stroke-width: 1.5; rx: 14px; }
+    .card-panel { fill: #0c0b14; stroke: #201b33; stroke-width: 1.2; rx: 12px; }
+    .font-hud { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; fill: #6e6b82; }
+    .title { font-size: 20px; font-weight: 800; fill: #ffffff; letter-spacing: -0.03em; }
+    .sub { font-size: 11px; fill: #9d99b3; }
+    .chip-bg { fill: #12101c; stroke: #25203b; stroke-width: 1; rx: 6px; }
+    .metric-box { fill: #100e1b; stroke: #1e1930; stroke-width: 1; rx: 6px; }
+  </style>
+
+  <rect width="880" height="310" class="bg-main"/>
+
+  <!-- Header -->
+  <g transform="translate(24, 20)">
+    <text x="0" y="8" class="font-hud eyebrow" fill="#9945FF">← SESSIONS · NEW SESSION</text>
+    <text x="0" y="30" class="font-hud title">Create AI session</text>
+    <text x="0" y="46" class="font-hud sub">Scope what an AI client can do with your jar. Nothing goes live until you review and sign with Phantom.</text>
+  </g>
+
+  <!-- Left Column: 3D Policy Blueprint HUD -->
+  <g transform="translate(24, 78)">
+    <rect width="360" height="212" class="card-panel" stroke="#9945FF" stroke-opacity="0.35"/>
+    <rect width="360" height="212" rx="12" fill="url(#blueGlow)"/>
+
+    <!-- Blueprint Head -->
+    <g transform="translate(18, 16)">
+      <text x="0" y="8" class="font-hud eyebrow">POLICY BLUEPRINT</text>
+      <rect x="250" y="-3" width="72" height="18" rx="9" fill="#1b1233" stroke="#9945FF"/>
+      <text x="286" y="9" text-anchor="middle" class="font-hud eyebrow" fill="#ca9ff5" font-size="8">DRAFTING</text>
+    </g>
+
+    <!-- Center Avatar Icon -->
+    <g transform="translate(180, 56)">
+      <rect x="-18" y="-14" width="36" height="36" rx="8" fill="#171226" stroke="#ca9ff5" stroke-width="1.2"/>
+      <text x="0" y="10" text-anchor="middle" class="font-hud title" font-size="18">C</text>
+      <text x="0" y="32" text-anchor="middle" class="font-hud" font-size="11" font-weight="700" fill="#ffffff">Claude</text>
+      <text x="0" y="44" text-anchor="middle" class="font-hud sub" font-size="8.5">Claude · USDC</text>
+    </g>
+
+    <!-- 4 Metric Tiles -->
+    <g transform="translate(20, 114)">
+      <!-- Tile 1: Duration -->
+      <g transform="translate(0, 0)">
+        <rect width="74" height="42" class="metric-box"/>
+        <text x="37" y="14" text-anchor="middle" class="font-hud eyebrow" font-size="8">DURATION</text>
+        <text x="37" y="32" text-anchor="middle" class="font-hud title" font-size="13">24h</text>
+      </g>
+      <!-- Tile 2: Daily -->
+      <g transform="translate(82, 0)">
+        <rect width="74" height="42" class="metric-box"/>
+        <text x="37" y="14" text-anchor="middle" class="font-hud eyebrow" font-size="8">DAILY</text>
+        <text x="37" y="32" text-anchor="middle" class="font-hud title" font-size="13">100</text>
+      </g>
+      <!-- Tile 3: Per Tx -->
+      <g transform="translate(164, 0)">
+        <rect width="74" height="42" class="metric-box"/>
+        <text x="37" y="14" text-anchor="middle" class="font-hud eyebrow" font-size="8">PER TX</text>
+        <text x="37" y="32" text-anchor="middle" class="font-hud title" font-size="13">20</text>
+      </g>
+      <!-- Tile 4: Approve -->
+      <g transform="translate(246, 0)">
+        <rect width="74" height="42" class="metric-box"/>
+        <text x="37" y="14" text-anchor="middle" class="font-hud eyebrow" font-size="8">APPROVE</text>
+        <text x="37" y="32" text-anchor="middle" class="font-hud title" font-size="13" fill="#14F195">&gt;15</text>
+      </g>
+    </g>
+
+    <!-- Flags Row -->
+    <g transform="translate(20, 168)">
+      <rect width="98" height="18" rx="9" fill="#120f1e" stroke="#1f1833"/>
+      <text x="49" y="12" text-anchor="middle" class="font-hud eyebrow" font-size="7">SWAP EXECUTE OFF</text>
+
+      <rect x="104" width="80" height="18" rx="9" fill="#0f1915" stroke="#14F195" stroke-opacity="0.4"/>
+      <text x="144" y="12" text-anchor="middle" class="font-hud eyebrow" font-size="7" fill="#14F195">X402 ACTIVE</text>
+
+      <rect x="190" width="130" height="18" rx="9" fill="#1b1233" stroke="#ca9ff5" stroke-opacity="0.4"/>
+      <text x="255" y="12" text-anchor="middle" class="font-hud eyebrow" font-size="7" fill="#ca9ff5">PHANTOM GATE VERIFIED</text>
+    </g>
+
+    <text x="180" y="202" text-anchor="middle" class="font-hud sub" font-size="8.5">Limits update live as you edit the form.</text>
+  </g>
+
+  <!-- Right Column: Create AI Session Form Minimalist -->
+  <g transform="translate(400, 78)">
+    <rect width="456" height="212" class="card-panel"/>
+
+    <g transform="translate(20, 14)">
+      <!-- Row 1: AI Client + Label -->
+      <g transform="translate(0, 0)">
+        <text x="0" y="8" class="font-hud eyebrow">AI CLIENT</text>
+        <rect y="12" width="180" height="24" rx="5" fill="#141120" stroke="#25203b"/>
+        <text x="8" y="28" class="font-hud sub" fill="#ffffff">Claude (MCP Engine)</text>
+
+        <text x="195" y="8" class="font-hud eyebrow">LABEL</text>
+        <rect x="195" y="12" width="220" height="24" rx="5" fill="#141120" stroke="#25203b"/>
+        <text x="203" y="28" class="font-hud sub">Work laptop</text>
+      </g>
+
+      <!-- Row 2: Duration, Daily Budget, Per-Tx -->
+      <g transform="translate(0, 48)">
+        <text x="0" y="8" class="font-hud eyebrow">DURATION</text>
+        <rect y="12" width="95" height="24" rx="5" fill="#141120" stroke="#25203b"/>
+        <text x="8" y="28" class="font-hud sub" fill="#ffffff">24 hours</text>
+
+        <text x="108" y="8" class="font-hud eyebrow">ASSET</text>
+        <rect x="108" y="12" width="85" height="24" rx="5" fill="#181524" stroke="#25203b"/>
+        <text x="116" y="28" class="font-hud sub" fill="#14F195">USDC</text>
+
+        <text x="206" y="8" class="font-hud eyebrow">DAILY BUDGET</text>
+        <rect x="206" y="12" width="100" height="24" rx="5" fill="#141120" stroke="#25203b"/>
+        <text x="214" y="28" class="font-hud sub" fill="#ffffff">100.00</text>
+
+        <text x="319" y="8" class="font-hud eyebrow">MAX / TX</text>
+        <rect x="319" y="12" width="96" height="24" rx="5" fill="#141120" stroke="#25203b"/>
+        <text x="327" y="28" class="font-hud sub" fill="#ffffff">20.00</text>
+      </g>
+
+      <!-- Row 3: Checkbox Cards -->
+      <g transform="translate(0, 96)">
+        <rect width="415" height="24" rx="5" fill="#110e1c" stroke="#1f1833"/>
+        <circle cx="12" cy="12" r="4" fill="#14F195"/>
+        <text x="24" y="15" class="font-hud" font-size="9" font-weight="700" fill="#ffffff">Allow x402 API payments</text>
+        <text x="156" y="15" class="font-hud sub" font-size="8.5">— Micropayments for paywalled HTTP APIs (402 → pay → retry)</text>
+
+        <rect y="28" width="415" height="24" rx="5" fill="#110e1c" stroke="#1f1833"/>
+        <circle cx="12" cy="40" r="4" fill="#6e6b82"/>
+        <text x="24" y="43" class="font-hud" font-size="9" font-weight="700" fill="#ffffff">Allow DeFi swap execute</text>
+        <text x="160" y="43" class="font-hud sub" font-size="8.5">— Opt-in Jupiter / Soroswap execute_swap routes</text>
+      </g>
+
+      <!-- Submit Button -->
+      <g transform="translate(0, 156)">
+        <rect width="140" height="28" rx="6" fill="#ffffff"/>
+        <text x="70" y="18" text-anchor="middle" class="font-hud" font-size="10.5" font-weight="800" fill="#000000">Review permissions →</text>
+        <text x="154" y="18" class="font-hud sub" font-size="9">Signs 0.05 SOL to agent on-chain</text>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 310" width="100%" height="100%">
+  <defs>
+    <linearGradient id="jarLiquid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#14F195"/>
+      <stop offset="100%" stop-color="#0b5435"/>
+    </linearGradient>
+    <linearGradient id="purpleGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9945FF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#14F195" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="mintGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    .bg-main { fill: #07060b; stroke: #191526; stroke-width: 1.5; rx: 14px; }
+    .card-panel { fill: #0c0b14; stroke: #201b33; stroke-width: 1.2; rx: 12px; }
+    .font-hud { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; fill: #6e6b82; }
+    .title { font-size: 20px; font-weight: 800; fill: #ffffff; letter-spacing: -0.03em; }
+    .sub { font-size: 11px; fill: #9d99b3; }
+    .chip-bg { fill: #12101c; stroke: #25203b; stroke-width: 1; rx: 8px; }
+    .chip-label { font-size: 8.5px; font-weight: 700; fill: #6e6b82; letter-spacing: 0.08em; }
+    .chip-val { font-size: 11px; font-weight: 700; fill: #ffffff; }
+    .num-big { font-size: 30px; font-weight: 800; fill: #ffffff; letter-spacing: -0.04em; }
+  </style>
+
+  <!-- Container -->
+  <rect width="880" height="310" class="bg-main"/>
+
+  <!-- Header -->
+  <g transform="translate(24, 22)">
+    <text x="0" y="10" class="font-hud eyebrow">CONTROL PLANE</text>
+    <text x="0" y="32" class="font-hud title">Overview</text>
+    <text x="0" y="48" class="font-hud sub">Phantom stays sealed. AI spends only from this jar.</text>
+
+    <!-- Chips -->
+    <g transform="translate(560, 4)">
+      <rect width="80" height="38" class="chip-bg"/>
+      <text x="10" y="15" class="font-hud chip-label">ACCOUNT</text>
+      <text x="10" y="30" class="font-hud chip-val" fill="#55e9ab">● GAJI6...AH</text>
+    </g>
+    <g transform="translate(650, 4)">
+      <rect width="70" height="38" class="chip-bg"/>
+      <text x="10" y="15" class="font-hud chip-label">SESSIONS</text>
+      <text x="10" y="30" class="font-hud chip-val">1 active</text>
+    </g>
+    <g transform="translate(730, 4)">
+      <rect width="100" height="38" class="chip-bg"/>
+      <text x="10" y="15" class="font-hud chip-label">USAGE</text>
+      <text x="10" y="30" class="font-hud chip-val" fill="#14F195">12 tx · 1.50 USDC</text>
+    </g>
+  </g>
+
+  <!-- Left Card: 3D Allocated Jar -->
+  <g transform="translate(24, 88)">
+    <rect width="400" height="198" class="card-panel"/>
+    
+    <!-- Minimalist Jar Illustration -->
+    <g transform="translate(32, 28)">
+      <!-- Outer Glass Shell -->
+      <rect x="0" y="18" width="80" height="110" rx="14" fill="#0d1b17" stroke="#14F195" stroke-width="1.8" filter="url(#mintGlow)"/>
+      <!-- Liquid Fill -->
+      <rect x="3" y="40" width="74" height="85" rx="11" fill="url(#jarLiquid)"/>
+      <!-- Liquid Top Wave Curve -->
+      <path d="M 3 40 Q 20 37, 40 40 T 77 40" fill="none" stroke="#55e9ab" stroke-width="2"/>
+      <!-- Floating Lid -->
+      <rect x="16" y="8" width="48" height="8" rx="3" fill="#323042" stroke="#484461" stroke-width="1"/>
+      <rect x="22" y="16" width="36" height="4" rx="2" fill="#14F195"/>
+    </g>
+
+    <!-- Allocated Balance Info -->
+    <g transform="translate(136, 44)">
+      <text x="0" y="0" class="font-hud eyebrow">ALLOCATED BALANCE</text>
+      <text x="0" y="34" class="font-hud num-big">10001.0000</text>
+      <text x="215" y="32" class="font-hud" font-size="14" font-weight="700" fill="#6e6b82">USDC</text>
+      <text x="0" y="56" class="font-hud sub" fill="#14F195">Solana devnet · jar 100% full</text>
+    </g>
+
+    <!-- Bottom Breakdown Row -->
+    <line x1="20" y1="162" x2="380" y2="162" stroke="#191526" stroke-width="1"/>
+    <text x="20" y="182" class="font-hud sub" fill="#6e6b82">USDC</text>
+    <text x="380" y="182" text-anchor="end" class="font-hud" font-size="12" font-weight="700" fill="#ffffff">10001.0000000</text>
+  </g>
+
+  <!-- Right Card: Fund the Jar -->
+  <g transform="translate(440, 88)">
+    <rect width="416" height="198" class="card-panel"/>
+
+    <!-- QR Code Minimalist Box -->
+    <g transform="translate(24, 24)">
+      <rect width="90" height="90" rx="8" fill="#ffffff"/>
+      <!-- Finder corners -->
+      <rect x="8" y="8" width="24" height="24" fill="#000000"/>
+      <rect x="12" y="12" width="16" height="16" fill="#ffffff"/>
+      <rect x="15" y="15" width="10" height="10" fill="#000000"/>
+
+      <rect x="58" y="8" width="24" height="24" fill="#000000"/>
+      <rect x="62" y="12" width="16" height="16" fill="#ffffff"/>
+      <rect x="65" y="15" width="10" height="10" fill="#000000"/>
+
+      <rect x="8" y="58" width="24" height="24" fill="#000000"/>
+      <rect x="12" y="62" width="16" height="16" fill="#ffffff"/>
+      <rect x="15" y="65" width="10" height="10" fill="#000000"/>
+
+      <rect x="36" y="36" width="18" height="18" fill="#000000"/>
+      <text x="45" y="104" text-anchor="middle" class="font-hud eyebrow" fill="#6e6b82">Scan · Phantom</text>
+    </g>
+
+    <!-- Fund Info & Inputs -->
+    <g transform="translate(132, 24)">
+      <text x="0" y="10" class="font-hud title" font-size="16">Fund the jar</text>
+      <text x="0" y="24" class="font-hud sub">Only funds here are accessible to AI sessions.</text>
+
+      <!-- Address Box -->
+      <g transform="translate(0, 32)">
+        <text x="0" y="0" class="font-hud eyebrow">VAULT ADDRESS</text>
+        <rect y="6" width="260" height="26" rx="6" fill="#141120" stroke="#25203b"/>
+        <text x="8" y="23" class="font-hud" font-size="10" font-family="monospace" fill="#ca9ff5">83eetVkGiCvyFw452uNiBhf6...</text>
+        <rect x="216" y="9" width="38" height="20" rx="4" fill="#25203b"/>
+        <text x="235" y="22" text-anchor="middle" class="font-hud" font-size="9" font-weight="700" fill="#ffffff">Copy</text>
+      </g>
+
+      <!-- Deposit Input Row -->
+      <g transform="translate(0, 78)">
+        <text x="0" y="0" class="font-hud eyebrow">ADD FROM PHANTOM</text>
+        <rect y="6" width="170" height="28" rx="6" fill="#141120" stroke="#25203b"/>
+        <text x="10" y="24" class="font-hud" font-size="11" fill="#6e6b82">10.00</text>
+        <text x="140" y="24" class="font-hud" font-size="10" font-weight="700" fill="#6e6b82">USDC</text>
+
+        <rect x="180" y="6" width="80" height="28" rx="6" fill="#ffffff"/>
+        <text x="220" y="23" text-anchor="middle" class="font-hud" font-size="10" font-weight="700" fill="#000000">Add USDC</text>
+      </g>
+    </g>
+
+    <!-- Step Checklist Minimalist -->
+    <g transform="translate(24, 150)">
+      <line x1="0" y1="0" x2="368" y2="0" stroke="#191526" stroke-width="1"/>
+      <text x="0" y="20" class="font-hud sub">① Enter amount &amp; sign in Phantom</text>
+      <text x="190" y="20" class="font-hud sub">② Or send USDC to vault address</text>
+    </g>
+  </g>
+</svg>
