@@ -18,8 +18,8 @@ export default function Sessions() {
   return (
     <>
       <PageHead
-        title="Sessions"
-        sub="Each agent key gets one session: its caps, merchants and expiry."
+        title="Agent sessions"
+        sub="Each agent gets its own session key on your vault: its caps, merchants and expiry. Revoke one without touching the others."
         actions={
           readOnly ? undefined : (
             <Link className="btn btn--primary" href="/app/sessions/new">

@@ -8,8 +8,15 @@ import { TopBar } from "@/components/TopBar";
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: "The rules the Allowance program enforces on every agent payment, and who signs what.",
+  description: "How Allowance's agentic wallet works: the vault, agent session keys, the MCP server and the rules the program enforces on every payment.",
 };
+
+const PARTS = [
+  ["Vault", "A program-owned token account per owner. Only the owner's wallet can deposit, withdraw, freeze or unfreeze."],
+  ["Agent session", "One per agent key: per-request and daily caps, listed merchants with their own caps, a reputation floor for everyone else, and an expiry. Revocable at any time."],
+  ["MCP server", "Runs beside Claude, Cursor or any MCP client and gives the agent wallet tools: get_allowance, transfer, pay_x402, request_approval, check_approval, check_merchant, get_history."],
+  ["Approvals", "A payment over the per-request cap becomes an on-chain request. You approve or reject it here; an approved one can be paid exactly once."],
+] as const;
 
 const RULES = [
   ["Vault not frozen", "Frozen"],
@@ -39,7 +46,7 @@ export default function HowItWorks() {
       <main id="main" className="container page page--public">
         <div className="pagehead pagehead--hero">
           <div>
-            <span className="eyebrow enter">The program</span>
+            <span className="eyebrow enter">Agentic wallet infrastructure</span>
             <SplitWords text="How it works" accent={["works"]} />
             <p className="muted enter" style={{ "--d": "360ms" } as React.CSSProperties}>
               Program{" "}
@@ -50,6 +57,23 @@ export default function HowItWorks() {
             </p>
           </div>
         </div>
+
+        <section className="col well well--glass" data-reveal aria-labelledby="parts-h">
+          <h2 id="parts-h">The pieces</h2>
+          <p className="muted">Allowance is a wallet built for agents: you own the money, each agent gets a key with limits.</p>
+          <table className="table">
+            <tbody data-stagger>
+              {PARTS.map(([part, what]) => (
+                <tr key={part}>
+                  <td data-label="Piece">
+                    <strong>{part}</strong>
+                  </td>
+                  <td data-label="What it does">{what}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
 
         <section className="col well well--glass" data-reveal aria-labelledby="rules-h">
           <h2 id="rules-h">What agent_pay checks, in order</h2>

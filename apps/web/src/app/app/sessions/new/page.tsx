@@ -138,9 +138,9 @@ export default function NewSession() {
           <Link href="/app/sessions" className="btn btn--text">
             Back to sessions
           </Link>
-          <h1>New AI session</h1>
+          <h1>Issue an agent session</h1>
           <p className="muted">
-            What an AI client may spend from your vault. The program enforces every number here, on every payment.
+            Give an AI client its own spending key on your vault. The program enforces every number here, on every payment.
           </p>
         </div>
       </div>

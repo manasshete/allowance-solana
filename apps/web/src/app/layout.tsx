@@ -12,8 +12,9 @@ import { Providers } from "@/components/Providers";
 const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-grotesk" });
 
 export const metadata: Metadata = {
-  title: { default: "Allowance", template: "%s | Allowance" },
-  description: "An on-chain spending firewall for AI agents paying over x402 on Solana.",
+  title: { default: "Allowance: agentic wallet infrastructure on Solana", template: "%s | Allowance" },
+  description:
+    "Agentic wallet infrastructure on Solana. Give each AI agent its own session key on a vault you own, with caps, merchants, approvals and a kill switch enforced on-chain. Pays over x402 and through MCP.",
 };
 
 export const viewport: Viewport = { themeColor: "#05040a", colorScheme: "dark" };
